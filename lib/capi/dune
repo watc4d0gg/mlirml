@@ -1,0 +1,12 @@
+(library
+ (name mlir)
+ (libraries stubs ctypes.stubs ctypes.foreign ctypes)
+ (foreign_stubs
+  (language c)
+  (names mlir_stubs)))
+
+(rule
+ (targets mlir_stubs.c mlir_generated.ml)
+ (deps ./generation/stub_generator.exe)
+ (action
+  (run %{deps})))

@@ -1,0 +1,4 @@
+(library
+ (name stubs)
+ (modules stubs)
+ (libraries api ctypes.stubs ctypes.foreign ctypes))

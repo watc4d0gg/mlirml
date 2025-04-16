@@ -1,0 +1,4 @@
+(executable
+ (public_name ocaml-mlir-bindings)
+ (name main)
+ (libraries mlir ctypes.stubs ctypes))

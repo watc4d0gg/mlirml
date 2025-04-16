@@ -1,0 +1,4 @@
+(library
+ (name structs)
+ (modules structs)
+ (libraries ctypes.stubs ctypes))

@@ -1,0 +1,26 @@
+(library
+  (wrapped false)
+  (name api)
+  (libraries structs ctypes.stubs ctypes.foreign ctypes))
+
+(rule
+ (targets mlir_structs.c)
+ (deps ../../generation/struct_generator.exe)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run %{deps} -c))))
+
+(rule
+ (targets mlir_structs.exe)
+ (deps mlir_structs.c)
+ (action
+  (bash "cc %{deps} -I %{ocaml_where} -I `dirname %{lib:ctypes:ctypes_cstubs_internals.h}` -o %{targets}")))
+
+(rule
+ (targets mlir_structs_generated.ml)
+ (deps mlir_structs.exe)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run %{deps} -ml))))
