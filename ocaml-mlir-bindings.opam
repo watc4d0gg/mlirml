@@ -7,7 +7,7 @@ tags: ["add topics" "to describe" "your" "project"]
 homepage: "https://github.com/watch4d0gg/ocaml-mlir-bindings"
 bug-reports: "https://github.com/watch4d0gg/ocaml-mlir-bindings/issues"
 depends: [
-  "dune" {>= "3.18"}
+  "dune" {>= "3.19"}
   "ocaml"
   "ctypes" {= "stubs"}
   "odoc" {with-doc}

@@ -1,9 +1,0 @@
-(executable
- (name struct_generator)
- (modules struct_generator)
- (libraries structs ctypes.stubs ctypes))
-
-(executable
- (name stub_generator)
- (modules stub_generator)
- (libraries stubs ctypes.stubs ctypes.foreign ctypes))

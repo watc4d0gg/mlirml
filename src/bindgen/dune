@@ -1,0 +1,4 @@
+(executable
+ (name bindgen)
+ (public_name bindgen)
+ (libraries clang))
