@@ -10,7 +10,8 @@ bug-reports: "https://github.com/watch4d0gg/mlirml/issues"
 depends: [
   "dune" {>= "3.19"}
   "ocaml"
-  "ctypes" {= "stubs"}
+  "ctypes"
+  "ctypes-foreign"
   "odoc" {with-doc}
 ]
 build: [

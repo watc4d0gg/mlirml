@@ -19,8 +19,8 @@
 (package
  (name mlirml)
  (synopsis "OCaml bindings to MLIR C API")
- (description "A longer description")
- (depends ocaml (ctypes (= stubs)))
+;  (description "A longer description")
+ (depends ocaml ctypes ctypes-foreign)
  (tags
   (llvm mlir bindings)))
 
