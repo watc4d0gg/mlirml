@@ -1,1 +1,1 @@
-# ocaml-mlir-bindings
+# mlirml

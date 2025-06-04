@@ -1,2 +1,5 @@
-(test
- (name test_mlirml))
+(library
+ (name test_mlirml)
+ (libraries mlir)
+ (inline_tests)
+ (preprocess (pps ppx_inline_test ppx_assert)))

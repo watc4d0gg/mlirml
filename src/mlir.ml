@@ -14,7 +14,7 @@ module Context = struct
 
 	let create = mlir_context_create
 
-	let equal ctx1 ctx2 = mlir_context_equal ctx1 ctx2
+	let equal = mlir_context_equal
 
 	let destroy = mlir_context_destroy
 
