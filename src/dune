@@ -7,7 +7,7 @@
     (glob_files /usr/include/mlir-c/Dialect/*.h)
     (glob_files /usr/include/mlir-c/Dialect/Transform/*.h)))
  (action
-  (run %{bindgen} -exclude-header-prefix "mlir/Dialect" %{files})))
+  (run %{bindgen} -exclude-header-prefix "mlir/" %{files})))
 
 (library
  (name mlir)
