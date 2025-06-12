@@ -4,10 +4,11 @@
  (ctypes
   (external_library_name libclang)
   (build_flags_resolver
-   (vendored 
+   (vendored
     (c_flags :standard -lclang)
     (c_library_flags :standard -lclang)))
-  (headers (include "clang-c/Index.h"))
+  (headers
+   (include "clang-c/Index.h"))
   (type_description
    (instance Types)
    (functor Type_bindings))

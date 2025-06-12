@@ -1,16 +1,12 @@
-open Ctypes
+type index
+type translation_unit
+type client_data
+type unsaved_file
+type cursor
+type source_location
+type ctype
 
-open Bindings.Types
-open Bindings.Functions
-
-type index = CXIndex.t
-type translation_unit = CXTranslationUnit.t
-type client_data = CXClientData.t
-type unsaved_file = CXUnsavedFile.t structure
-type cursor = CXCursor.t structure
-type source_location = CXSourceLocation.t structure
-type ctype = CXType.t structure
-type cursor_kind = CXCursorKind.t =
+type cursor_kind =
   | CXCursor_UnexposedDecl
   | CXCursor_StructDecl
   | CXCursor_UnionDecl
@@ -304,7 +300,17 @@ type cursor_kind = CXCursorKind.t =
   | CXCursor_FirstExtraDecl
   | CXCursor_LastExtraDecl
   | CXCursor_OverloadCandidate
-type type_kind = CXTypeKind.t =
+(* | UnexposedDecl
+	| StructDecl
+	| EnumDecl
+	| FieldDecl
+	| EnumConstantDecl
+	| FunctionDecl
+	| ParmDecl
+	| TypedefDecl
+	| Unspecified of int64 *)
+
+type type_kind =
   | CXType_Invalid
   | CXType_Unexposed
   | CXType_Void
@@ -431,11 +437,39 @@ type type_kind = CXTypeKind.t =
   | CXType_ExtVector
   | CXType_Atomic
   | CXType_BTFTagAttributed
-type child_visit_result = CXChildVisitResult.t =
+(* | Invalid
+	| Void
+	| Bool
+	| Char_U
+	| UChar
+	| UInt
+	| ULong
+	| ULongLong
+	| Char_S
+	| SChar
+	| Int
+	| Long
+	| LongLong
+	| Float
+	| Double
+	| Typedef
+	| FunctionProto
+	| Unexposed
+	| Pointer
+	| Record
+	| Enum
+	| ConstantArray
+	| Other of int64 default case *)
+
+type child_visit_result =
   | CXChildVisit_Break
   | CXChildVisit_Continue
   | CXChildVisit_Recurse
-type translation_unit_flags = CXTranslationUnit_Flags.t =
+(* | Break
+	| Continue
+	| Recurse *)
+
+type translation_unit_flags =
   | CXTranslationUnit_None
   | CXTranslationUnit_DetailedPreprocessingRecord
   | CXTranslationUnit_Incomplete
@@ -453,122 +487,60 @@ type translation_unit_flags = CXTranslationUnit_Flags.t =
   | CXTranslationUnit_VisitImplicitAttributes
   | CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles
   | CXTranslationUnit_RetainExcludedConditionalBlocks
-module Index = struct
 
-  let create excludeDeclarationsFromPCH displayDiagnostics =
-    let result = clang_create_index excludeDeclarationsFromPCH displayDiagnostics in
-    if is_null result then None else Some result
-  
-  let dispose index = clang_dispose_index index
-
+module Index : sig
+  val create : int -> int -> index option
+  val dispose : index -> unit
 end
 
-module TranslationUnit = struct
+module TranslationUnit : sig
+  val parse
+    :  index
+    -> string
+    -> string list
+    -> unsaved_file list
+    -> flags:translation_unit_flags
+    -> translation_unit option
 
-  let parse index source_filename command_line_args unsaved_files ~flags =
-    let arg_array = CArray.of_list string command_line_args in
-    let files_array = CArray.of_list CXUnsavedFile.t unsaved_files in
-    let mapping = List.assoc flags CXTranslationUnit_Flags.mapping in
-    let result = clang_parse_translation_unit index source_filename (CArray.start arg_array) (CArray.length arg_array) (CArray.start files_array) (Unsigned.UInt.of_int (CArray.length files_array)) (Unsigned.UInt.of_int64 mapping) in
-    if Ctypes.is_null result then None else Some result
-
-  let cursor translation_unit = let result = clang_get_translation_unit_cursor translation_unit in
-    if clang_cursor_is_null result == 0 then Some result else None
-
-  let dispose translation_unit = clang_dispose_translation_unit translation_unit
-
+  val cursor : translation_unit -> cursor option
+  val dispose : translation_unit -> unit
 end
 
-module Cursor = struct
+module Cursor : sig
+  val kind : cursor -> cursor_kind
+  val location : cursor -> source_location
+  val ctype : cursor -> ctype
+  val spelling : cursor -> string
 
-	let kind cursor = clang_get_cursor_kind cursor
-
-  let location cursor = clang_get_cursor_location cursor
-
-  let ctype cursor = clang_get_cursor_type cursor
-
-  let spelling cursor =
-    let cstring = clang_get_cursor_spelling cursor in
-    let result = clang_get_cstring cstring in
-    clang_dispose_string cstring;
-    result
-
-  let visit_children cursor visitor =
-    let funptr = coerce
-      (Foreign.funptr (CXCursor.t @-> CXCursor.t @-> CXClientData.t @-> returning CXChildVisitResult.t))
-      CXCursorVisitor.t
-      (fun child _ _ -> visitor child cursor) in
-    let _ = clang_visit_children cursor funptr null in ()
-  
-  let underlying_type cursor =
-    if kind cursor = CXCursor_TypedefDecl then
-      Some (clang_get_typedef_decl_underlying_type cursor)
-    else None
-
-  let is_bit_field cursor = if clang_cursor_is_bit_field cursor = Unsigned.UInt.zero then false else true
+  (* val visit_children : cursor -> (cursor -> cursor -> 'a ref -> child_visit_result) -> 'a ref -> unit *)
+  val visit_children : cursor -> (cursor -> cursor -> child_visit_result) -> unit
+  val underlying_type : cursor -> ctype option
+  val is_bit_field : cursor -> bool
 end
 
-module SourceLocation = struct
-
-    let is_in_system_header source_location = if clang_location_is_in_system_header source_location == 0 then false else true
-
-    let is_from_main_file source_location = if clang_location_is_from_main_file source_location == 0 then false else true
-
+module SourceLocation : sig
+  val is_in_system_header : source_location -> bool
+  val is_from_main_file : source_location -> bool
 end
 
-module CType = struct
-
-    let kind ctype = getf ctype CXType.kind
-
-    let is_const_qualified ctype =
-      if clang_is_const_qualified_type ctype = Unsigned.UInt.zero then false else true
-
-    let spelling ctype =
-      let cstring = clang_get_type_spelling ctype in
-      let result = clang_get_cstring cstring in
-      clang_dispose_string cstring;
-      result
-
-    let declaration ctype = clang_get_type_declaration ctype
-
-    let get_canonical_type ctype =
-      let result = clang_get_canonical_type ctype in
-      if kind ctype = CXType_Invalid then None else Some result
-
-    let get_return_type ctype =
-      let result = clang_get_result_type ctype in
-      if kind ctype = CXType_Invalid then None else Some result
-
-    let get_pointee_type ctype =
-      let result = clang_get_pointee_type ctype in
-      if kind ctype = CXType_Invalid then None else Some result
-    
-    let get_constant_array_data ctype =
-      let element_type = clang_get_array_element_type ctype in
-      if kind element_type = CXType_Invalid then None
-      else begin
-        let size = clang_get_array_size ctype |> Signed.LLong.to_int64 in
-        if size = Int64.of_int (-1) then None
-        else Some (element_type, size)
-      end
-
+module CType : sig
+  val kind : ctype -> type_kind
+  val spelling : ctype -> string
+  val declaration : ctype -> cursor
+  val is_const_qualified : ctype -> bool
+  val get_canonical_type : ctype -> ctype option
+  val get_return_type : ctype -> ctype option
+  val get_pointee_type : ctype -> ctype option
+  val get_constant_array_data : ctype -> (ctype * int64) option
 end
 
-let with_index excludeDeclarationsFromPCH displayDiagnostics f =
-  match Index.create excludeDeclarationsFromPCH displayDiagnostics with
-  | Some index -> Fun.protect
-    ~finally:(fun _ -> Index.dispose index)
-    (fun _ -> f index)
-  | None -> failwith "Unable to create an index with Clang!"
+val with_index : int -> int -> (index -> 'a) -> 'a
 
-let with_translation_unit filename command_line_args f index =
-  match TranslationUnit.parse index filename command_line_args [] ~flags:CXTranslationUnit_None with
-  | Some translation_unit -> Fun.protect
-    ~finally:(fun _ -> TranslationUnit.dispose translation_unit)
-    (fun _ -> f translation_unit)
-  | None -> failwith (Printf.sprintf "Unable to initialize a translation unit for the file %s!" filename)
+val with_translation_unit
+  :  string
+  -> string list
+  -> (translation_unit -> 'a)
+  -> index
+  -> 'a
 
-let with_cursor f translation_unit =
-  match TranslationUnit.cursor translation_unit with
-  | Some cursor -> f cursor
-  | None -> failwith (Printf.sprintf "Unable to retrieve the cursor from the translation unit!")
+val with_cursor : (cursor -> 'a) -> translation_unit -> 'a
