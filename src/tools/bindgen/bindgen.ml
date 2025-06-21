@@ -413,7 +413,7 @@ let rec parse_c_type
            parent
            pointeeType
        in
-       if Hashtbl.mem types pointeeName
+       if struct_compatible && Hashtbl.mem types pointeeName
        then (
          match Hashtbl.find types pointeeName with
          | Struct (_, fields) ->
