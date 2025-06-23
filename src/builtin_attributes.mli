@@ -3,6 +3,7 @@ open Bindings.Types
 open Affine_map.AffineMap
 open Ir.Ir
 
+(** @canonical Mlir.AffineMapAttr *)
 module AffineMapAttr : sig
   class type t = object
     inherit Attribute.t
@@ -18,6 +19,7 @@ module AffineMapAttr : sig
   val get : AffineMap.t -> t
 end
 
+(** @canonical Mlir.ArrayAttr *)
 module ArrayAttr : sig
   class type t = object
     inherit Attribute.t
@@ -43,7 +45,9 @@ module ArrayAttr : sig
   val get : Context.t -> #Attribute.t list -> t
 end
 
+(** @canonical Mlir.TypedAttr *)
 module TypedAttr : sig
+  (***)
   class type t = object
     inherit Attribute.t
 
@@ -57,6 +61,7 @@ module TypedAttr : sig
   val get : #Type.t -> t
 end
 
+(** @canonical Mlir.FloatAttr *)
 module FloatAttr : sig
   class type t = object
     inherit Attribute.t
@@ -74,6 +79,20 @@ module FloatAttr : sig
   val get : #Type.t -> float -> Location.t -> t
 end
 
+(** @canonical Mlir.IntegerAttr *)
+module IntegerAttr : sig
+  class type t = object
+    inherit Attribute.t
+    method value : int64
+    method signless_value : int64
+    method unsigned_value : Unsigned.uint64
+  end
+
+  val from_raw : MlirAttribute.t structure -> t
+  val get : #Type.t -> int -> t
+end
+
+(** @canonical Mlir.StringAttr *)
 module StringAttr : sig
   class type t = object
     inherit Attribute.t
@@ -93,6 +112,7 @@ module StringAttr : sig
   val get_typed : #Type.t -> string -> t
 end
 
+(** @canonical Mlir.DenseArrayAttr *)
 module DenseArrayAttr : sig
   class type ['a] t = object
     inherit Attribute.t
@@ -113,6 +133,7 @@ module DenseArrayAttr : sig
   end
 end
 
+(** @canonical Mlir.DenseBoolArrayAttr *)
 module DenseBoolArrayAttr : sig
   class type t = [bool] DenseArrayAttr.t
 
@@ -122,6 +143,7 @@ module DenseBoolArrayAttr : sig
   val get : Context.t -> bool list -> t
 end
 
+(** @canonical Mlir.DenseInt8ArrayAttr *)
 module DenseInt8ArrayAttr : sig
   class type t = [int] DenseArrayAttr.t
 
@@ -131,6 +153,7 @@ module DenseInt8ArrayAttr : sig
   val get : Context.t -> int list -> t
 end
 
+(** @canonical Mlir.DenseInt16ArrayAttr *)
 module DenseInt16ArrayAttr : sig
   class type t = [int] DenseArrayAttr.t
 
@@ -140,6 +163,7 @@ module DenseInt16ArrayAttr : sig
   val get : Context.t -> int list -> t
 end
 
+(** @canonical Mlir.DenseInt32ArrayAttr *)
 module DenseInt32ArrayAttr : sig
   class type t = [int32] DenseArrayAttr.t
 
@@ -149,6 +173,7 @@ module DenseInt32ArrayAttr : sig
   val get : Context.t -> int32 list -> t
 end
 
+(** @canonical Mlir.DenseInt64ArrayAttr *)
 module DenseInt64ArrayAttr : sig
   class type t = [int64] DenseArrayAttr.t
 

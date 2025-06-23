@@ -2,7 +2,7 @@ open Ctypes
 open Bindings.Types
 open Bindings.Functions
 open Error
-open Support.Support
+open Support
 open Utils
 
 (* TODO: add not_null asserts to ALL complex factory functions/parsers *)
@@ -135,6 +135,7 @@ module Ir = struct
     let float64 ctx = mlir_f64_type_get ctx#raw |> from_raw
     let index ctx = mlir_index_type_get ctx#raw |> from_raw
     let none ctx = mlir_none_type_get ctx#raw |> from_raw
+    let is_function t = mlir_type_is_afunction t#raw
     let is_shaped t = mlir_type_is_ashaped t#raw
     let equal t1 t2 = mlir_type_equal t1#raw t2#raw
     let print ~callback t = print_raw mlir_type_print ~callback t#raw
@@ -189,6 +190,11 @@ module Ir = struct
     let is_dense_int16_array attr = mlir_attribute_is_adense_i16_array attr#raw
     let is_dense_int32_array attr = mlir_attribute_is_adense_i32_array attr#raw
     let is_dense_int64_array attr = mlir_attribute_is_adense_i64_array attr#raw
+
+    let is_sparse_tensor_encoding attr =
+      mlir_attribute_is_asparse_tensor_encoding_attr attr#raw
+
+
     let unit ctx = mlir_unit_attr_get ctx#raw |> from_raw
     let equal a1 a2 = mlir_attribute_equal a1#raw a2#raw
     let print ~callback attr = print_raw mlir_attribute_print ~callback attr#raw
@@ -622,25 +628,27 @@ module Ir = struct
         in
         mlir_block_insert_owned_operation_before self#raw ref op#raw
 
-      method iter_operations ~f =
-        let rec iter current =
-          match current with
-          | Some op ->
-            f op;
-            iter op#next
-          | None -> ()
-        in
-        iter self#first
+      method iter_operations : f:(operation -> unit) -> unit =
+        fun ~f ->
+          let rec iter current =
+            match current with
+            | Some op ->
+              f op;
+              iter op#next
+            | None -> ()
+          in
+          iter self#first
 
-      method iteri_operations ~f =
-        let rec iteri current index =
-          match current with
-          | Some op ->
-            f index op;
-            iteri op#next (index + 1)
-          | None -> ()
-        in
-        iteri self#first 0
+      method iteri_operations : f:(int -> operation -> unit) -> unit =
+        fun ~f ->
+          let rec iteri current index =
+            match current with
+            | Some op ->
+              f index op;
+              iteri op#next (index + 1)
+            | None -> ()
+          in
+          iteri self#first 0
 
       method arguments = mlir_block_get_num_arguments self#raw |> Intptr.to_int
 

@@ -1,8 +1,9 @@
 open Ctypes
 open Bindings.Types
-open Support.Support
+open Support
 
 module rec Ir : sig
+  (** @canonical Mlir.Context *)
   module Context : sig
     class type t = object
       method allows_unregistered_dialects : bool
@@ -24,6 +25,7 @@ module rec Ir : sig
     val equal : t -> t -> bool
   end
 
+  (** @canonical Mlir.Dialect *)
   module Dialect : sig
     class type t = object
       method context : Context.t
@@ -37,6 +39,7 @@ module rec Ir : sig
     val equal : t -> t -> bool
   end
 
+  (** @canonical Mlir.DialectHandle *)
   module DialectHandle : sig
     class type t = object
       method namespace : string
@@ -54,6 +57,7 @@ module rec Ir : sig
     val transform : unit -> t
   end
 
+  (** @canonical Mlir.DialectRegistry *)
   module DialectRegistry : sig
     class type t = object
       method insert_dialect : DialectHandle.t -> unit
@@ -65,6 +69,7 @@ module rec Ir : sig
     val get : unit -> t
   end
 
+  (** @canonical Mlir.Type *)
   module Type : sig
     class type t = object
       method context : Context.t
@@ -81,12 +86,14 @@ module rec Ir : sig
     val float64 : Context.t -> t
     val index : Context.t -> t
     val none : Context.t -> t
+    val is_function : #t -> bool
     val is_shaped : #t -> bool
     val equal : #t -> #t -> bool
     val print : callback:(string -> unit) -> #t -> unit
     val dump : #t -> unit
   end
 
+  (** @canonical Mlir.Identifier *)
   module Identifier : sig
     class type t = object
       method context : Context.t
@@ -99,6 +106,7 @@ module rec Ir : sig
     val equal : t -> t -> bool
   end
 
+  (** @canonical Mlir.Attribute *)
   module Attribute : sig
     class type t = object
       method context : Context.t
@@ -141,12 +149,16 @@ module rec Ir : sig
     (** [is_dense_int64_array attr] checks whether the given attribute is a dense 64-bit integer array attribute *)
     val is_dense_int64_array : #t -> bool
 
+    (** [is_sparse_tensor_encoding attr] checks whether the given attribute is a `sparse_tensor.encoding` attribute *)
+    val is_sparse_tensor_encoding : #t -> bool
+
     val unit : Context.t -> t
     val equal : #t -> #t -> bool
     val print : callback:(string -> unit) -> #t -> unit
     val dump : #t -> unit
   end
 
+  (** @canonical Mlir.Location *)
   module Location : sig
     class type t = object
       method attribute : Attribute.t
@@ -164,6 +176,7 @@ module rec Ir : sig
     val print : callback:(string -> unit) -> t -> unit
   end
 
+  (** @canonical Mlir.OpPrintingFlags *)
   module OpPrintingFlags : sig
     class type t = object
       method destroy : unit
@@ -180,6 +193,7 @@ module rec Ir : sig
     val skip_regions : t -> t
   end
 
+  (** @canonical Mlir.BytecodeWriterConfig *)
   module BytecodeWriterConfig : sig
     class type t = object
       method desired_emit_version : int -> unit
@@ -191,6 +205,7 @@ module rec Ir : sig
     val get : unit -> t
   end
 
+  (** @canonical Mlir.AsmState *)
   module AsmState : sig
     class type t = object
       method destroy : unit
@@ -202,6 +217,7 @@ module rec Ir : sig
     val create_for_value : Ir.Value.t -> OpPrintingFlags.t -> t
   end
 
+  (** @canonical Mlir.Value *)
   module Value : sig
     class type t = object
       method get_type : Type.t
@@ -221,6 +237,7 @@ module rec Ir : sig
     val dump : #t -> unit
   end
 
+  (** @canonical Mlir.OpOperand *)
   module OpOperand : sig
     class type t = object
       method value : Value.t
@@ -233,6 +250,7 @@ module rec Ir : sig
     val from_raw : MlirOpOperand.t structure -> t
   end
 
+  (** @canonical Mlir.BlockArgument *)
   module BlockArgument : sig
     class type t = object
       inherit Value.t
@@ -243,6 +261,7 @@ module rec Ir : sig
     val from_raw : MlirValue.t structure -> t
   end
 
+  (** @canonical Mlir.OpResult *)
   module OpResult : sig
     class type t = object
       inherit Value.t
@@ -253,6 +272,7 @@ module rec Ir : sig
     val from_raw : MlirValue.t structure -> t
   end
 
+  (** @canonical Mlir.Operation *)
   module Operation : sig
     class type t = object
       method context : Context.t
@@ -332,6 +352,7 @@ module rec Ir : sig
     val walk : callback:(t -> walk_result) -> walk_order -> t -> unit
   end
 
+  (** @canonical Mlir.Block *)
   module Block : sig
     class type t = object
       method parent_operation : Operation.t option
@@ -363,6 +384,7 @@ module rec Ir : sig
     val print : callback:(string -> unit) -> t -> unit
   end
 
+  (** @canonical Mlir.Region *)
   module Region : sig
     class type t = object
       method first : Block.t option
@@ -383,6 +405,7 @@ module rec Ir : sig
     val equal : t -> t -> bool
   end
 
+  (** @canonical Mlir.Module *)
   module Module : sig
     class type t = object
       method context : Context.t
@@ -398,6 +421,7 @@ module rec Ir : sig
     val from_operation : Operation.t -> t option
   end
 
+  (** @canonical Mlir.SymbolTable *)
   module SymbolTable : sig
     class type t = object
       method lookup : string -> Operation.t option
@@ -415,6 +439,7 @@ module rec Ir : sig
     val walk : bool -> callback:(Operation.t -> bool -> unit) -> Operation.t -> unit
   end
 
+  (** @canonical Mlir.OpBuilder *)
   module OpBuilder : sig
     type t
 

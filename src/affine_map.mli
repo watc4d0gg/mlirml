@@ -3,6 +3,7 @@ open Bindings.Types
 open Ir.Ir
 
 module rec AffineMap : sig
+  (** @canonical Mlir.AffineExpr *)
   module AffineExpr : sig
     class type t = object
       method context : Context.t
@@ -107,6 +108,7 @@ module rec AffineMap : sig
     val get : #AffineExpr.t -> #AffineExpr.t -> t
   end
 
+  (** @canonical Mlir.AffineMap *)
   module AffineMap : sig
     class type t = object
       method context : Context.t

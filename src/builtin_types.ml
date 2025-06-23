@@ -3,10 +3,10 @@ open Bindings.Types
 open Bindings.Functions
 open Error
 open Ir.Ir
-open Support.Support
+open Support
 open Utils
 
-module Function = struct
+module FunctionType = struct
   class t raw =
     object (self)
       initializer
@@ -19,27 +19,35 @@ module Function = struct
              ^ " to a Function")
           |> raise
 
+      method inputs = mlir_function_type_get_num_inputs self#raw |> Intptr.to_int
+
       method input index =
         mlir_function_type_get_input self#raw (Intptr.of_int index) |> Type.from_raw
 
       method iter_inputs ~f =
-        List.init (mlir_function_type_get_num_inputs self#raw |> Intptr.to_int) Fun.id
-        |> List.iter (fun index -> self#input index |> f)
+        List.init self#inputs Fun.id |> List.iter (fun index -> self#input index |> f)
 
       method iteri_inputs ~f =
-        List.init (mlir_function_type_get_num_inputs self#raw |> Intptr.to_int) Fun.id
+        List.init self#inputs Fun.id
         |> List.iter (fun index -> self#input index |> f index)
+
+      method map_inputs : 'a. f:(Type.t -> 'a) -> 'a list =
+        fun ~f -> List.init self#inputs self#input |> List.map f
+
+      method results = mlir_function_type_get_num_results self#raw |> Intptr.to_int
 
       method result index =
         mlir_function_type_get_result self#raw (Intptr.of_int index) |> Type.from_raw
 
       method iter_results ~f =
-        List.init (mlir_function_type_get_num_results self#raw |> Intptr.to_int) Fun.id
-        |> List.iter (fun index -> self#result index |> f)
+        List.init self#results Fun.id |> List.iter (fun index -> self#result index |> f)
 
       method iteri_results ~f =
-        List.init (mlir_function_type_get_num_results self#raw |> Intptr.to_int) Fun.id
+        List.init self#results Fun.id
         |> List.iter (fun index -> self#result index |> f index)
+
+      method map_results : 'a. f:(Type.t -> 'a) -> 'a list =
+        fun ~f -> List.init self#inputs self#input |> List.map f
 
       method context = mlir_type_get_context self#raw |> Context.from_raw
       method id = mlir_type_get_type_id self#raw |> TypeId.from_raw
@@ -48,6 +56,7 @@ module Function = struct
     end
 
   let from_raw = new t
+  let cast t = from_raw t#raw
 
   let get ctx inputs results =
     let input_array = CArray.of_list MlirType.t (List.map (fun t -> t#raw) inputs)
@@ -65,7 +74,7 @@ module Function = struct
     else from_raw result
 end
 
-module Shaped = struct
+module ShapedType = struct
   type dim_size =
     | Static of int
     | Dynamic
@@ -117,7 +126,7 @@ module Shaped = struct
   let cast t = new t t#raw
 end
 
-module Tensor = struct
+module TensorType = struct
   class t raw =
     object
       initializer
@@ -130,14 +139,14 @@ module Tensor = struct
              ^ " to a Tensor type")
           |> raise
 
-      inherit Shaped.t raw
+      inherit ShapedType.t raw
     end
 
   let is_unranked tn = mlir_type_is_aunranked_tensor tn#raw
   let is_ranked tn = mlir_type_is_aranked_tensor tn#raw
 end
 
-module RankedTensor = struct
+module RankedTensorType = struct
   class t raw =
     object (self)
       initializer
@@ -150,7 +159,7 @@ module RankedTensor = struct
              ^ " to a RankedTensor type")
           |> raise
 
-      inherit Tensor.t raw
+      inherit TensorType.t raw
       method! id = mlir_ranked_tensor_type_get_type_id () |> TypeId.from_raw
 
       method encoding =
@@ -165,8 +174,8 @@ module RankedTensor = struct
       List.map
         (fun dim ->
            match dim with
-           | Shaped.Static size -> Int64.of_int size
-           | Shaped.Dynamic -> mlir_shaped_type_get_dynamic_size ())
+           | ShapedType.Static size -> Int64.of_int size
+           | ShapedType.Dynamic -> mlir_shaped_type_get_dynamic_size ())
         dims
       |> CArray.of_list int64_t
     in
@@ -185,7 +194,7 @@ module RankedTensor = struct
     |> from_raw
 end
 
-module UnrankedTensor = struct
+module UnrankedTensorType = struct
   class t raw =
     object
       initializer
@@ -198,7 +207,7 @@ module UnrankedTensor = struct
              ^ " to a UnrankedTensor type")
           |> raise
 
-      inherit Tensor.t raw
+      inherit TensorType.t raw
       method! id = mlir_unranked_tensor_type_get_type_id () |> TypeId.from_raw
     end
 

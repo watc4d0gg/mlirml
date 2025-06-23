@@ -2,22 +2,27 @@ open Ctypes
 open Bindings.Types
 open Ir.Ir
 
-module Function : sig
+module FunctionType : sig
   class type t = object
     inherit Type.t
+    method inputs : int
     method input : int -> Type.t
     method iter_inputs : f:(Type.t -> unit) -> unit
     method iteri_inputs : f:(int -> Type.t -> unit) -> unit
+    method map_inputs : 'a. f:(Type.t -> 'a) -> 'a list
+    method results : int
     method result : int -> Type.t
     method iter_results : f:(Type.t -> unit) -> unit
     method iteri_results : f:(int -> Type.t -> unit) -> unit
+    method map_results : 'a. f:(Type.t -> 'a) -> 'a list
   end
 
   val from_raw : MlirType.t structure -> t
+  val cast : #Type.t -> t
   val get : Context.t -> #Type.t list -> #Type.t list -> t
 end
 
-module Shaped : sig
+module ShapedType : sig
   type dim_size =
     | Static of int
     | Dynamic
@@ -49,9 +54,9 @@ module Shaped : sig
   val cast : #Type.t -> t
 end
 
-module Tensor : sig
+module TensorType : sig
   class type t = object
-    inherit Shaped.t
+    inherit ShapedType.t
   end
 
   (** [is_unranked] checks whether the given type is an unranked tensor type *)
@@ -61,9 +66,9 @@ module Tensor : sig
   val is_ranked : #Type.t -> bool
 end
 
-module RankedTensor : sig
+module RankedTensorType : sig
   class type t = object
-    inherit Tensor.t
+    inherit TensorType.t
 
     (** [encoding] gets the 'encoding' attribute from the ranked tensor type, returning a nothing if none is present *)
     method encoding : Attribute.t option
@@ -74,12 +79,12 @@ module RankedTensor : sig
   (** [get dims element encoding location] creates a tensor type of a fixed rank with the given shape, element type,
     and optional encoding in the same context as the element type. The type is owned by the context. On illegal arguments,
     the function emits appropriate diagnostics and throws a runtime error. *)
-  val get : Shaped.dim_size list -> #Type.t -> #Attribute.t option -> Location.t -> t
+  val get : ShapedType.dim_size list -> #Type.t -> #Attribute.t option -> Location.t -> t
 end
 
-module UnrankedTensor : sig
+module UnrankedTensorType : sig
   class type t = object
-    inherit Tensor.t
+    inherit TensorType.t
   end
 
   val from_raw : MlirType.t structure -> t

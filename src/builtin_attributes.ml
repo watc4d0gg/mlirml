@@ -4,7 +4,7 @@ open Bindings.Functions
 open Affine_map.AffineMap
 open Error
 open Ir.Ir
-open Support.Support
+open Support
 open Utils
 
 module AffineMapAttr = struct
@@ -128,6 +128,37 @@ module FloatAttr = struct
   let get t value location =
     mlir_float_attr_double_get_checked location#raw t#raw value
     |> not_null mlir_attribute_is_null "Unable to create a float attribute"
+    |> from_raw
+end
+
+module IntegerAttr = struct
+  class t raw =
+    object (self)
+      initializer
+        if mlir_attribute_is_ainteger raw
+        then ()
+        else
+          Error
+            ("Unable to cast the attribute "
+             ^ print_raw_as_string mlir_attribute_print raw
+             ^ " to an IntegerAttr")
+          |> raise
+
+      method value = mlir_integer_attr_get_value_int self#raw
+      method signless_value = mlir_integer_attr_get_value_sint self#raw
+      method unsigned_value = mlir_integer_attr_get_value_uint self#raw
+      method context = mlir_attribute_get_context self#raw |> Context.from_raw
+      method t = mlir_type_attr_get_value self#raw |> Type.from_raw
+      method id = mlir_integer_attr_get_type_id () |> TypeId.from_raw
+      method dialect = mlir_attribute_get_dialect self#raw |> Dialect.from_raw
+      method raw = raw
+    end
+
+  let from_raw = new t
+
+  let get t value =
+    mlir_integer_attr_get t#raw (Int64.of_int value)
+    |> not_null mlir_attribute_is_null "Unable to create an integer attribute"
     |> from_raw
 end
 

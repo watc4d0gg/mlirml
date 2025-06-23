@@ -1,44 +1,50 @@
 open Ctypes
 open Bindings.Types
 
-module Support : sig
-  module LogicalResult : sig
-    type t =
-      | Success
-      | Failure
+module LogicalResult : sig
+  (** @canonical Mlir.LogicalResult *)
 
-    val from_raw : MlirLogicalResult.t structure -> t
+  type t =
+    | Success
+    | Failure
+
+  val from_raw : MlirLogicalResult.t structure -> t
+end
+
+module LLVMThreadPool : sig
+  (** @canonical Mlir.LLVMThreadPool *)
+
+  class type t = object
+    method destroy : unit
+    method raw : MlirLlvmThreadPool.t structure
   end
 
-  module LLVMThreadPool : sig
-    class type t = object
-      method destroy : unit
-      method raw : MlirLlvmThreadPool.t structure
-    end
+  val from_raw : MlirLlvmThreadPool.t structure -> t
+  val get : unit -> t
+end
 
-    val from_raw : MlirLlvmThreadPool.t structure -> t
-    val get : unit -> t
+module TypeId : sig
+  (** @canonical Mlir.TypeId *)
+
+  class type t = object
+    method hash : Unsigned.size_t
+    method raw : MlirTypeID.t structure
   end
 
-  module TypeId : sig
-    class type t = object
-      method hash : Unsigned.size_t
-      method raw : MlirTypeID.t structure
-    end
+  val from_raw : MlirTypeID.t structure -> t
+  val get : 'a typ -> 'a -> t
+  val equal : t -> t -> bool
+end
 
-    val from_raw : MlirTypeID.t structure -> t
-    val get : 'a typ -> 'a -> t
-    val equal : t -> t -> bool
+module TypeIdAllocator : sig
+  (** @canonical Mlir.TypeIdAllocator *)
+
+  class type t = object
+    method allocate : TypeId.t
+    method destroy : unit
+    method raw : MlirTypeIDAllocator.t structure
   end
 
-  module TypeIdAllocator : sig
-    class type t = object
-      method allocate : TypeId.t
-      method destroy : unit
-      method raw : MlirTypeIDAllocator.t structure
-    end
-
-    val from_raw : MlirTypeIDAllocator.t structure -> t
-    val get : unit -> t
-  end
+  val from_raw : MlirTypeIDAllocator.t structure -> t
+  val get : unit -> t
 end

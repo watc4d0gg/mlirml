@@ -11,4 +11,6 @@ module Linalg : sig
     -> init:(Block.t -> unit)
     -> Location.t
     -> Operation.t
+
+  val yield : #Value.t list -> Location.t -> Operation.t
 end

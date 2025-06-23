@@ -495,7 +495,7 @@ and collect_types (types, order) location_predicate name_predicate cursor parent
     match Cursor.kind cursor with
     | CXCursor_TypedefDecl ->
       let ctype = Cursor.ctype cursor in
-      (match CType.get_canonical_type ctype with
+      (match Cursor.underlying_type cursor with
        | Some canonical_type ->
          (match CType.kind canonical_type with
           | CXType_Record ->
@@ -566,7 +566,22 @@ and collect_types (types, order) location_predicate name_predicate cursor parent
       let name, is_typedef =
         Cursor.ctype cursor |> CType.spelling |> strip_prefix ~prefix:"struct "
       in
-      if Hashtbl.mem types name || not (name_predicate name)
+      let should_collect =
+        name_predicate name
+        && (Hashtbl.mem types name |> not
+            ||
+            match Hashtbl.find types name with
+            | Struct (_, fields) ->
+              let result = List.is_empty fields in
+              if result
+              then (
+                Hashtbl.remove types name;
+                order := List.filter (String.equal name >> not) !order)
+              else ();
+              result
+            | _ -> false)
+      in
+      if not should_collect
       then CXChildVisit_Continue
       else (
         let fields = ref [] in
@@ -676,12 +691,14 @@ let write_types types order =
   let fmt = Format.formatter_of_out_channel out in
   Format.fprintf fmt "open Ctypes\n";
   Format.fprintf fmt "\n";
+  Format.fprintf fmt "(** @canonical Mlir.Bindings *)\n";
   Format.fprintf fmt "module Types (T : TYPE) = struct\n";
   Format.fprintf fmt "  open T\n";
   Format.fprintf fmt "\n";
   List.iter
     (fun name ->
        let info = Hashtbl.find types name in
+       Format.fprintf fmt "  (** @canonical Mlir.Bindings.%s *)\n" name;
        Format.fprintf fmt "%s\n\n" (info |> to_ml_string name |> indent 2))
     (List.rev !order);
   Format.fprintf fmt "end";

@@ -1,13 +1,14 @@
 open Ir.Ir
 open Builtin_attributes
 
+(** @canonical Mlir.Func *)
 module Func : sig
   val func
     :  Context.t
     -> StringAttr.t
     -> #TypedAttr.t
-    -> Region.t
     -> (Identifier.t * #Attribute.t) list
+    -> init:(Block.t -> unit)
     -> Location.t
     -> Operation.t
 
