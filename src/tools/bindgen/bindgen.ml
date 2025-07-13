@@ -669,7 +669,7 @@ let traverse_file filename f =
   with_index
     0
     0
-    (with_translation_unit filename [ "-I/usr/lib/clang/19/include" ] (with_cursor f))
+    (with_translation_unit filename [ "-I/usr/lib/clang/20/include" ] (with_cursor f))
 
 
 let collect_bindings types functions file =

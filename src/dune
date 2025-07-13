@@ -25,7 +25,7 @@
      -L/usr/lib
      -lstdc++
      -lLLVM
-     -lLLVM-19
+     -lLLVM-20
      -lLLVMSupport
      -lLLVMTableGen
      -lMLIR
@@ -85,6 +85,7 @@
      -lMLIRCAPIControlFlow
      -lMLIRCAPIConversion
      -lMLIRCAPIDebug
+     -lMLIRCAPIEmitC
      -lMLIRCAPIExecutionEngine
      -lMLIRCAPIFunc
      -lMLIRCAPIGPU
@@ -136,9 +137,11 @@
      -lMLIRDialect
      -lMLIRDialectUtils
      -lMLIRDLTIDialect
+     -lMLIRDLTITransformOps
      -lMLIREmitCDialect
      -lMLIREmitCTransforms
      -lMLIRExecutionEngine
+     -lMLIRExecutionEngineShared
      -lMLIRExecutionEngineUtils
      -lMLIRFromLLVMIRTranslationRegistration
      -lMLIRFuncAllExtensions
@@ -159,9 +162,9 @@
      -lMLIRGPUToNVVMTransforms
      -lMLIRGPUToROCDLTransforms
      -lMLIRGPUToSPIRV
-     -lMLIRGPUToVulkanTransforms
      -lMLIRGPUTransformOps
      -lMLIRGPUTransforms
+     -lMLIRGPUUtils
      -lMLIRIndexDialect
      -lMLIRIndexToLLVM
      -lMLIRIndexToSPIRV
@@ -183,9 +186,12 @@
      -lMLIRLLVMIRTransforms
      -lMLIRLLVMToLLVMIRTranslation
      -lMLIRLoopLikeInterface
+     -lMLIRLspServerLib
+     -lMLIRLspServerSupportLib
      -lMLIRMaskableOpInterface
      -lMLIRMaskingOpInterface
      -lMLIRMathDialect
+     -lMLIRMathToEmitC
      -lMLIRMathToFuncs
      -lMLIRMathToLibm
      -lMLIRMathToLLVM
@@ -201,7 +207,9 @@
      -lMLIRMemRefTransforms
      -lMLIRMemRefUtils
      -lMLIRMeshDialect
+     -lMLIRMeshToMPI
      -lMLIRMeshTransforms
+     ;  -lMLIRMlirOptMain
      -lMLIRMLProgramDialect
      -lMLIRMLProgramTransforms
      -lMLIRMPIDialect
@@ -223,6 +231,7 @@
      -lMLIROpenMPDialect
      -lMLIROpenMPToLLVM
      -lMLIROpenMPToLLVMIRTranslation
+     -lMLIROptLib
      -lMLIRParallelCombiningOpInterface
      -lMLIRParser
      -lMLIRPass
@@ -237,6 +246,7 @@
      -lMLIRPresburger
      -lMLIRPtrDialect
      -lMLIRQuantDialect
+     -lMLIRQuantTransforms
      -lMLIRQuantUtils
      -lMLIRQuery
      -lMLIRQueryLib
@@ -271,6 +281,7 @@
      -lMLIRSparseTensorTransformOps
      -lMLIRSparseTensorTransforms
      -lMLIRSparseTensorUtils
+     -lMLIRSPIRVAttrToLLVMConversion
      -lMLIRSPIRVBinaryUtils
      -lMLIRSPIRVConversion
      -lMLIRSPIRVDeserialization
@@ -291,8 +302,10 @@
      -lMLIRTargetLLVMIRExport
      -lMLIRTargetLLVMIRImport
      -lMLIRTblgenLib
+     -lMLIRTensorAllExtensions
      -lMLIRTensorDialect
      -lMLIRTensorInferTypeOpInterfaceImpl
+     -lMLIRTensorMeshShardingExtensions
      -lMLIRTensorTilingInterfaceImpl
      -lMLIRTensorToLinalg
      -lMLIRTensorToSPIRV
@@ -334,6 +347,7 @@
      -lMLIRVectorToLLVMPass
      -lMLIRVectorToSCF
      -lMLIRVectorToSPIRV
+     -lMLIRVectorToXeGPU
      -lMLIRVectorTransformOps
      -lMLIRVectorTransforms
      -lMLIRVectorUtils
@@ -368,6 +382,7 @@
     "mlir-c/Dialect/Arith.h"
     "mlir-c/Dialect/Async.h"
     "mlir-c/Dialect/ControlFlow.h"
+    "mlir-c/Dialect/EmitC.h"
     "mlir-c/Dialect/Func.h"
     "mlir-c/Dialect/GPU.h"
     "mlir-c/Dialect/IRDL.h"

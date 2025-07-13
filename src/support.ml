@@ -36,10 +36,10 @@ module TypeId = struct
 
   let from_raw = new t
 
-  let get ctype data =
-    if alignment (ptr ctype) != 8
-    then Error "TypeID pointer must be 8-byte aligned" |> raise
-    else allocate ctype data |> to_voidp |> mlir_type_idcreate |> from_raw
+  let get data =
+    (* if alignment (ptr ctype) != 8
+    then Error "TypeID pointer must be 8-byte aligned" |> raise *)
+    Root.create data |> mlir_type_idcreate |> from_raw
 
 
   let equal t1 t2 = mlir_type_idequal t1#raw t2#raw

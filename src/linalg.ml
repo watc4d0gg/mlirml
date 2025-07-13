@@ -3,9 +3,10 @@ open Builtin_attributes
 open Builtin_types
 
 module Linalg = struct
-  let generic ctx inputs outputs indexing_map iterator_types ~init location =
+  let generic ctx inputs outputs indexing_maps iterator_types ~init location =
     let operandSegmentSizes =
-      [ List.length inputs |> Int32.of_int; List.length outputs |> Int32.of_int ] in
+      [ List.length inputs |> Int32.of_int; List.length outputs |> Int32.of_int ]
+    in
     OpBuilder.get "linalg.generic" location
     |> OpBuilder.add_operands inputs
     |> OpBuilder.add_operands outputs
@@ -16,11 +17,15 @@ module Linalg = struct
          ]
     |> OpBuilder.add_attributes
          [ ( Identifier.get ctx "indexing_maps"
-           , List.map AffineMapAttr.get indexing_map |> ArrayAttr.get ctx )
+           , List.map AffineMapAttr.get indexing_maps |> ArrayAttr.get ctx )
          ]
     |> OpBuilder.add_attributes
          [ ( Identifier.get ctx "iterator_types"
-           , List.map (fun iter -> Printf.sprintf "#linalg.iterator_type<%s>" iter |> Attribute.parse ctx) iterator_types |> ArrayAttr.get ctx )
+           , List.map
+               (fun iter ->
+                  Printf.sprintf "#linalg.iterator_type<%s>" iter |> Attribute.parse ctx)
+               iterator_types
+             |> ArrayAttr.get ctx )
          ]
     |> OpBuilder.add_regions
          [ (let region = Region.get () in

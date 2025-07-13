@@ -32,7 +32,7 @@ module TypeId : sig
   end
 
   val from_raw : MlirTypeID.t structure -> t
-  val get : 'a typ -> 'a -> t
+  val get : 'a -> t
   val equal : t -> t -> bool
 end
 
