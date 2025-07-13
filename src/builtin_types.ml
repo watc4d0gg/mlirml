@@ -24,10 +24,10 @@ module FunctionType = struct
       method input index =
         mlir_function_type_get_input self#raw (Intptr.of_int index) |> Type.from_raw
 
-      method iter_inputs ~f =
+      method iter_inputs : f:(Type.t -> unit) -> unit = fun ~f ->
         List.init self#inputs Fun.id |> List.iter (fun index -> self#input index |> f)
 
-      method iteri_inputs ~f =
+      method iteri_inputs : f:(int -> Type.t -> unit) -> unit = fun ~f ->
         List.init self#inputs Fun.id
         |> List.iter (fun index -> self#input index |> f index)
 
@@ -39,10 +39,10 @@ module FunctionType = struct
       method result index =
         mlir_function_type_get_result self#raw (Intptr.of_int index) |> Type.from_raw
 
-      method iter_results ~f =
+      method iter_results : f:(Type.t -> unit) -> unit = fun ~f ->
         List.init self#results Fun.id |> List.iter (fun index -> self#result index |> f)
 
-      method iteri_results ~f =
+      method iteri_results : f:(int -> Type.t -> unit) -> unit = fun ~f ->
         List.init self#results Fun.id
         |> List.iter (fun index -> self#result index |> f index)
 

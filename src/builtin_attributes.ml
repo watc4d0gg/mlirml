@@ -50,10 +50,10 @@ module ArrayAttr = struct
       method element pos =
         mlir_array_attr_get_element self#raw (Intptr.of_int pos) |> Attribute.from_raw
 
-      method iter_elements ~f =
+      method iter_elements : f:(Attribute.t -> unit) -> unit = fun ~f ->
         List.init self#elements Fun.id |> List.iter (fun index -> self#element index |> f)
 
-      method iteri_elements ~f =
+      method iteri_elements : f:(int -> Attribute.t -> unit) -> unit = fun ~f ->
         List.init self#elements Fun.id
         |> List.iter (fun index -> self#element index |> f index)
 
@@ -216,10 +216,10 @@ module DenseArrayAttr = struct
       method element : int -> 'a =
         fun index -> element_getter self#raw (Intptr.of_int index)
 
-      method iter_elements ~f =
+      method iter_elements : f:('a -> unit) -> unit = fun ~f ->
         List.init self#elements Fun.id |> List.iter (fun index -> self#element index |> f)
 
-      method iteri_elements ~f =
+      method iteri_elements : f:(int -> 'a -> unit) -> unit = fun ~f ->
         List.init self#elements Fun.id
         |> List.iter (fun index -> self#element index |> f index)
 
