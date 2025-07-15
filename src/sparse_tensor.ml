@@ -7,70 +7,112 @@ open Support
 open Affine_map.AffineMap
 open Utils
 
-module SparseTensorFormat = struct
-  type t =
-    | Dense
-    | Batch
-    | Compressed
-    | Singleton
-    | LooseCompressed
-    | NOutOfM
-end
-
-module SparseTensorProperty = struct
+module LevelNonDefaultProperty = struct
   type t =
     | NonUnique
     | NonOrdered
+    | StructureOfArrays
+  [@@deriving ord]
 end
 
-module SparseTensorLevelType = struct
-  type t = Unsigned.uint64
+module LevelNonDefaultProperties = Set.Make (LevelNonDefaultProperty)
 
-  let build fmt properties n_opt m_opt =
-    let prop_array =
-      CArray.of_list
-        MlirSparseTensorLevelPropertyNondefault.t
-        (List.map
-           (fun prop ->
-              match prop with
-              | SparseTensorProperty.NonUnique ->
-                MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_UNIQUE
-              | SparseTensorProperty.NonOrdered ->
-                MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_ORDERED)
-           properties)
-    in
-    mlir_sparse_tensor_encoding_attr_build_lvl_type
-      (match fmt with
-       | SparseTensorFormat.Dense ->
-         MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_DENSE
-       | SparseTensorFormat.Batch ->
-         MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_BATCH
-       | SparseTensorFormat.Compressed ->
-         MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_COMPRESSED
-       | SparseTensorFormat.Singleton ->
-         MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_SINGLETON
-       | SparseTensorFormat.LooseCompressed ->
-         MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_LOOSE_COMPRESSED
-       | SparseTensorFormat.NOutOfM ->
-         MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_N_OUT_OF_M)
+module LevelType = struct
+  type raw = Unsigned.uint64
+
+  type t =
+    | Dense of LevelNonDefaultProperties.t * raw
+    | Batch of LevelNonDefaultProperties.t * raw
+    | Compressed of LevelNonDefaultProperties.t * raw
+    | LooseCompressed of LevelNonDefaultProperties.t * raw
+    | Singleton of LevelNonDefaultProperties.t * raw
+    | Structured of int * int * LevelNonDefaultProperties.t * raw
+
+  let to_array = LevelNonDefaultProperties.to_list
+    >> List.map
+      (fun prop ->
+        match prop with
+        | LevelNonDefaultProperty.NonUnique ->
+          MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_UNIQUE
+        | LevelNonDefaultProperty.NonOrdered ->
+          MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_ORDERED
+        | LevelNonDefaultProperty.StructureOfArrays ->
+          MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_SOA)
+    >> CArray.of_list MlirSparseTensorLevelPropertyNondefault.t
+
+  let raw = function
+  | Dense (_, raw) -> raw
+  | Batch (_, raw) -> raw
+  | Compressed (_, raw) -> raw
+  | LooseCompressed (_, raw) -> raw
+  | Singleton (_, raw) -> raw
+  | Structured (_, _, _, raw) -> raw
+
+  let dense props =
+    let props_set = LevelNonDefaultProperties.of_list props in
+    let prop_array = to_array props_set in
+    let raw = mlir_sparse_tensor_encoding_attr_build_lvl_type
+      MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_DENSE
       (CArray.start prop_array)
-      (List.length properties |> Unsigned.UInt.of_int)
-      (Option.value n_opt ~default:0 |> Unsigned.UInt.of_int)
-      (Option.value m_opt ~default:0 |> Unsigned.UInt.of_int)
+      (LevelNonDefaultProperties.cardinal props_set |> Unsigned.UInt.of_int)
+      (Unsigned.UInt.zero)
+      (Unsigned.UInt.zero) in
+    Dense (props_set, raw)
 
+  let batch props =
+    let props_set = LevelNonDefaultProperties.of_list props in
+    let prop_array = to_array props_set in
+    let raw = mlir_sparse_tensor_encoding_attr_build_lvl_type
+      MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_BATCH
+      (CArray.start prop_array)
+      (LevelNonDefaultProperties.cardinal props_set |> Unsigned.UInt.of_int)
+      (Unsigned.UInt.zero)
+      (Unsigned.UInt.zero) in
+    Batch (props_set, raw)
 
-  let structured_n lvl_type =
-    let value = mlir_sparse_tensor_encoding_attr_get_structured_n lvl_type in
-    if Unsigned.UInt.equal Unsigned.UInt.zero value
-    then None
-    else Some (Unsigned.UInt.to_int value)
+  let compressed props =
+    let props_set = LevelNonDefaultProperties.of_list props in
+    let prop_array = to_array props_set in
+    let raw = mlir_sparse_tensor_encoding_attr_build_lvl_type
+      MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_COMPRESSED
+      (CArray.start prop_array)
+      (LevelNonDefaultProperties.cardinal props_set |> Unsigned.UInt.of_int)
+      (Unsigned.UInt.zero)
+      (Unsigned.UInt.zero) in
+    Compressed (props_set, raw)
 
+  let loose_compressed props =
+    let props_set = LevelNonDefaultProperties.of_list props in
+    let prop_array = to_array props_set in
+    let raw = mlir_sparse_tensor_encoding_attr_build_lvl_type
+      MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_LOOSE_COMPRESSED
+      (CArray.start prop_array)
+      (LevelNonDefaultProperties.cardinal props_set |> Unsigned.UInt.of_int)
+      (Unsigned.UInt.zero)
+      (Unsigned.UInt.zero) in
+    LooseCompressed (props_set, raw)
+  
+  let singleton props =
+    let props_set = LevelNonDefaultProperties.of_list props in
+    let prop_array = to_array props_set in
+    let raw = mlir_sparse_tensor_encoding_attr_build_lvl_type
+      MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_SINGLETON
+      (CArray.start prop_array)
+      (LevelNonDefaultProperties.cardinal props_set |> Unsigned.UInt.of_int)
+      (Unsigned.UInt.zero)
+      (Unsigned.UInt.zero) in
+    Singleton (props_set, raw)
 
-  let structured_m lvl_type =
-    let value = mlir_sparse_tensor_encoding_attr_get_structured_m lvl_type in
-    if Unsigned.UInt.equal Unsigned.UInt.zero value
-    then None
-    else Some (Unsigned.UInt.to_int value)
+  let structured n m props =
+    let props_set = LevelNonDefaultProperties.of_list props in
+    let prop_array = to_array props_set in
+    let raw = mlir_sparse_tensor_encoding_attr_build_lvl_type
+      MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_N_OUT_OF_M
+      (CArray.start prop_array)
+      (LevelNonDefaultProperties.cardinal props_set |> Unsigned.UInt.of_int)
+      (Unsigned.UInt.of_int n)
+      (Unsigned.UInt.of_int m) in
+    Structured (n, m, props_set, raw)
 end
 
 module SparseTensorEncodingAttr = struct
@@ -89,25 +131,24 @@ module SparseTensorEncodingAttr = struct
       method level_rank =
         mlir_sparse_tensor_encoding_get_lvl_rank self#raw |> Intptr.to_int
 
+      (* TODO: expose non default properties *)
       method level_type lvl =
-        mlir_sparse_tensor_encoding_attr_get_lvl_type self#raw (Intptr.of_int lvl)
-
-      method level_format lvl =
-        match
-          mlir_sparse_tensor_encoding_attr_get_lvl_fmt self#raw (Intptr.of_int lvl)
-        with
+        let raw = mlir_sparse_tensor_encoding_attr_get_lvl_type self#raw (Intptr.of_int lvl) in
+        match mlir_sparse_tensor_encoding_attr_get_lvl_fmt self#raw (Intptr.of_int lvl) with
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_DENSE ->
-          SparseTensorFormat.Dense
+          LevelType.Dense (LevelNonDefaultProperties.empty, raw)
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_BATCH ->
-          SparseTensorFormat.Batch
+          LevelType.Batch (LevelNonDefaultProperties.empty, raw)
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_COMPRESSED ->
-          SparseTensorFormat.Compressed
+          LevelType.Compressed (LevelNonDefaultProperties.empty, raw)
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_SINGLETON ->
-          SparseTensorFormat.Singleton
+          LevelType.LooseCompressed (LevelNonDefaultProperties.empty, raw)
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_LOOSE_COMPRESSED ->
-          SparseTensorFormat.LooseCompressed
+          LevelType.Singleton (LevelNonDefaultProperties.empty, raw)
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_N_OUT_OF_M ->
-          SparseTensorFormat.NOutOfM
+          let n = mlir_sparse_tensor_encoding_attr_get_structured_n raw |> Unsigned.UInt.to_int
+          and m = mlir_sparse_tensor_encoding_attr_get_structured_m raw |> Unsigned.UInt.to_int in
+          LevelType.Structured (n, m, LevelNonDefaultProperties.empty, raw)
 
       method dimensions_to_levels =
         mlir_sparse_tensor_encoding_attr_get_dim_to_lvl self#raw |> AffineMap.from_raw
@@ -153,7 +194,7 @@ module SparseTensorEncodingAttr = struct
                 ?finalise:(Some (fun map -> setf map MlirAffineMap.ptr null))
                 MlirAffineMap.t)
     in
-    let lvl_type_array = CArray.of_list uint64_t level_types in
+    let lvl_type_array = CArray.of_list uint64_t (List.map LevelType.raw level_types) in
     mlir_sparse_tensor_encoding_attr_get
       ctx#raw
       (List.length level_types |> Intptr.of_int)

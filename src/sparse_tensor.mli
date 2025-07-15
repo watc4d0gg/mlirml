@@ -3,34 +3,37 @@ open Bindings.Types
 open Ir.Ir
 open Affine_map.AffineMap
 
-module SparseTensorFormat : sig
-  type t =
-    | Dense
-    | Batch
-    | Compressed
-    | Singleton
-    | LooseCompressed
-    | NOutOfM
-end
-
-module SparseTensorProperty : sig
+module LevelNonDefaultProperty : sig
   type t =
     | NonUnique
     | NonOrdered
+    | StructureOfArrays
+  
+  val compare : t -> t -> int
 end
 
-module SparseTensorLevelType : sig
-  type t
+module LevelNonDefaultProperties : sig
+  include module type of Set.Make (LevelNonDefaultProperty)
+end
 
-  val build
-    :  SparseTensorFormat.t
-    -> SparseTensorProperty.t list
-    -> int option
-    -> int option
-    -> t
+module LevelType : sig
+  type raw = Unsigned.uint64
 
-  val structured_n : t -> int option
-  val structured_m : t -> int option
+  type t =
+    | Dense of LevelNonDefaultProperties.t * raw
+    | Batch of LevelNonDefaultProperties.t * raw
+    | Compressed of LevelNonDefaultProperties.t * raw
+    | LooseCompressed of LevelNonDefaultProperties.t * raw
+    | Singleton of LevelNonDefaultProperties.t * raw
+    | Structured of int * int * LevelNonDefaultProperties.t * raw
+
+  val raw : t -> raw
+  val dense : LevelNonDefaultProperty.t list -> t
+  val batch : LevelNonDefaultProperty.t list -> t
+  val compressed : LevelNonDefaultProperty.t list -> t
+  val loose_compressed : LevelNonDefaultProperty.t list -> t
+  val singleton : LevelNonDefaultProperty.t list -> t
+  val structured : int -> int -> LevelNonDefaultProperty.t list -> t
 end
 
 module SparseTensorEncodingAttr : sig
@@ -41,10 +44,7 @@ module SparseTensorEncodingAttr : sig
     method level_rank : int
 
     (** [level_type] returns a specified level-type of the `sparse_tensor.encoding` attribute *)
-    method level_type : int -> SparseTensorLevelType.t
-
-    (** [level_format lvl] returns a specified level-format of the `sparse_tensor.encoding` attribute *)
-    method level_format : int -> SparseTensorFormat.t
+    method level_type : int -> LevelType.t
 
     (** [dimension_to_levels] returns the dimension-to-level mapping of the `sparse_tensor.encoding` attribute *)
     method dimensions_to_levels : AffineMap.t
@@ -70,7 +70,7 @@ module SparseTensorEncodingAttr : sig
   (** [get ctx lvl_types dim_to_lvl lvl_to_dim pos_width crd_width explicit_val implicit_val] creates a `sparse_tensor.encoding` attribute with the given parameters *)
   val get
     :  Context.t
-    -> SparseTensorLevelType.t list
+    -> LevelType.t list
     -> AffineMap.t
     -> AffineMap.t option
     -> int option

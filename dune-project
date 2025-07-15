@@ -20,7 +20,7 @@
  (name mlirml)
  (synopsis "OCaml bindings to MLIR C API")
 ;  (description "A longer description")
- (depends ocaml ctypes ctypes-foreign)
+ (depends ocaml ctypes ctypes-foreign ppx_deriving)
  (tags
   (llvm mlir bindings)))
 

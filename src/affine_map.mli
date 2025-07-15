@@ -5,107 +5,40 @@ open Ir.Ir
 module rec AffineMap : sig
   (** @canonical Mlir.AffineExpr *)
   module AffineExpr : sig
-    class type t = object
-      method context : Context.t
-      method compose : AffineMap.AffineMap.t -> t
-      method raw : MlirAffineExpr.t structure
-    end
 
-    val from_raw : MlirAffineExpr.t structure -> t
-    val is_symbolic_or_constant : #t -> bool
-    val is_pure_affine : #t -> bool
-    val largest_known_divisor : #t -> int
-    val is_multiple_of : #t -> int -> bool
-    val is_function_of_dim : #t -> int -> bool
-    val is_binary : #t -> bool
-    val equal : #t -> #t -> bool
-    val print : callback:(string -> unit) -> #t -> unit
-    val dump : #t -> unit
-  end
+    type raw = MlirAffineExpr.t structure
 
-  module AffineDimExpr : sig
-    class type t = object
-      inherit AffineExpr.t
-      method position : int
-    end
+    type t =
+      | Dim of int * raw
+      | Symbol of int * raw
+      | Constant of int * raw
+      | Add of t * t * raw
+      | Mul of t * t * raw
+      | Mod of t * t * raw
+      | CeilDiv of t * t * raw
+      | FloorDiv of t * t * raw
 
-    val from_raw : MlirAffineExpr.t structure -> t
-    val get : Context.t -> int -> t
-  end
-
-  module AffineSymbolExpr : sig
-    class type t = object
-      inherit AffineExpr.t
-      method position : int
-    end
-
-    val from_raw : MlirAffineExpr.t structure -> t
-    val get : Context.t -> int -> t
-  end
-
-  module AffineConstantExpression : sig
-    class type t = object
-      inherit AffineExpr.t
-      method value : int
-    end
-
-    val from_raw : MlirAffineExpr.t structure -> t
-    val get : Context.t -> int -> t
-  end
-
-  module AffineAddExpression : sig
-    class type t = object
-      inherit AffineExpr.t
-      method lhs : AffineExpr.t
-      method rhs : AffineExpr.t
-    end
-
-    val from_raw : MlirAffineExpr.t structure -> t
-    val get : #AffineExpr.t -> #AffineExpr.t -> t
-  end
-
-  module AffineMulExpression : sig
-    class type t = object
-      inherit AffineExpr.t
-      method lhs : AffineExpr.t
-      method rhs : AffineExpr.t
-    end
-
-    val from_raw : MlirAffineExpr.t structure -> t
-    val get : #AffineExpr.t -> #AffineExpr.t -> t
-  end
-
-  module AffineModExpression : sig
-    class type t = object
-      inherit AffineExpr.t
-      method lhs : AffineExpr.t
-      method rhs : AffineExpr.t
-    end
-
-    val from_raw : MlirAffineExpr.t structure -> t
-    val get : #AffineExpr.t -> #AffineExpr.t -> t
-  end
-
-  module AffineFloorDivExpression : sig
-    class type t = object
-      inherit AffineExpr.t
-      method lhs : AffineExpr.t
-      method rhs : AffineExpr.t
-    end
-
-    val from_raw : MlirAffineExpr.t structure -> t
-    val get : #AffineExpr.t -> #AffineExpr.t -> t
-  end
-
-  module AffineCeilDivExpression : sig
-    class type t = object
-      inherit AffineExpr.t
-      method lhs : AffineExpr.t
-      method rhs : AffineExpr.t
-    end
-
-    val from_raw : MlirAffineExpr.t structure -> t
-    val get : #AffineExpr.t -> #AffineExpr.t -> t
+    val from_raw : raw -> t
+    val raw : t -> raw
+    val dim : Context.t -> int -> t
+    val symbol : Context.t -> int -> t
+    val constant : Context.t -> int -> t
+    val add : t -> t -> t
+    val mul : t -> t -> t
+    val modulo : t -> t -> t
+    val ceil_div : t -> t -> t
+    val floor_div : t -> t -> t
+    val context : t -> Context.t
+    val compose : t -> AffineMap.AffineMap.t -> t
+    val is_symbolic_or_constant : t -> bool
+    val is_pure_affine : t -> bool
+    val largest_known_divisor : t -> int
+    val is_multiple_of : t -> int -> bool
+    val is_function_of_dim : t -> int -> bool
+    val is_binary : t -> bool
+    val equal : t -> t -> bool
+    val print : callback:(string -> unit) -> t -> unit
+    val dump : t -> unit
   end
 
   (** @canonical Mlir.AffineMap *)
@@ -127,14 +60,14 @@ module rec AffineMap : sig
       method sub_map : int list -> t
       method major_sub_map : int -> t
       method minor_sub_map : int -> t
-      method replace : #AffineExpr.t -> #AffineExpr.t -> int -> int -> t
+      method replace : AffineExpr.t -> AffineExpr.t -> int -> int -> t
       method raw : MlirAffineMap.t structure
     end
 
     val from_raw : MlirAffineMap.t structure -> t
     val empty : Context.t -> t
     val zero : Context.t -> int -> int -> t
-    val get : Context.t -> int -> int -> #AffineExpr.t list -> t
+    val get : Context.t -> int -> int -> AffineExpr.t list -> t
     val constant : Context.t -> int -> t
     val multi_dim_identity : Context.t -> int -> t
     val minor_identity : Context.t -> int -> int -> t

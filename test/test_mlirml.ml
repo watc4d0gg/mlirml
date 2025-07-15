@@ -69,17 +69,17 @@ let%test "matmul" =
     let location = Location.unknown ctx in
     let float64 = Type.float64 ctx in
     let indexing_maps =
-      [ AffineMap.get ctx 3 0 [AffineDimExpr.get ctx 0; AffineDimExpr.get ctx 1]
-      ; AffineMap.get ctx 3 0 [AffineDimExpr.get ctx 1; AffineDimExpr.get ctx 2]
-      ; AffineMap.get ctx 3 0 [AffineDimExpr.get ctx 0; AffineDimExpr.get ctx 2]
+      [ AffineMap.get ctx 3 0 [AffineExpr.dim ctx 0; AffineExpr.dim ctx 1]
+      ; AffineMap.get ctx 3 0 [AffineExpr.dim ctx 1; AffineExpr.dim ctx 2]
+      ; AffineMap.get ctx 3 0 [AffineExpr.dim ctx 0; AffineExpr.dim ctx 2]
       ]
     in
     let iterator_types = [ "parallel"; "reduction"; "parallel"] in
     let dcsr =
       SparseTensorEncodingAttr.get
         ctx
-        [ SparseTensorLevelType.build SparseTensorFormat.Compressed [] None None
-        ; SparseTensorLevelType.build SparseTensorFormat.Compressed [] None None
+        [ LevelType.compressed []
+        ; LevelType.compressed []
         ]
         (AffineMap.multi_dim_identity ctx 2)
         None
