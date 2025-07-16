@@ -5,7 +5,6 @@ open Ir.Ir
 module rec AffineMap : sig
   (** @canonical Mlir.AffineExpr *)
   module AffineExpr : sig
-
     type raw = MlirAffineExpr.t structure
 
     type t =

@@ -8,7 +8,7 @@ module LevelNonDefaultProperty : sig
     | NonUnique
     | NonOrdered
     | StructureOfArrays
-  
+
   val compare : t -> t -> int
 end
 
@@ -20,20 +20,20 @@ module LevelType : sig
   type raw = Unsigned.uint64
 
   type t =
-    | Dense of LevelNonDefaultProperties.t * raw
-    | Batch of LevelNonDefaultProperties.t * raw
+    | Dense of raw
+    | Batch of raw
     | Compressed of LevelNonDefaultProperties.t * raw
     | LooseCompressed of LevelNonDefaultProperties.t * raw
     | Singleton of LevelNonDefaultProperties.t * raw
-    | Structured of int * int * LevelNonDefaultProperties.t * raw
+    | Structured of int * int * raw
 
   val raw : t -> raw
-  val dense : LevelNonDefaultProperty.t list -> t
-  val batch : LevelNonDefaultProperty.t list -> t
+  val dense : unit -> t
+  val batch : unit -> t
   val compressed : LevelNonDefaultProperty.t list -> t
   val loose_compressed : LevelNonDefaultProperty.t list -> t
   val singleton : LevelNonDefaultProperty.t list -> t
-  val structured : int -> int -> LevelNonDefaultProperty.t list -> t
+  val structured : int -> int -> t
 end
 
 module SparseTensorEncodingAttr : sig

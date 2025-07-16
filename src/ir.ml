@@ -357,12 +357,14 @@ module Ir = struct
       method region index =
         mlir_operation_get_region self#raw (Intptr.of_int index) |> new region
 
-      method iter_regions : f:(region -> unit) -> unit = fun ~f ->
-        List.init self#regions Fun.id |> List.iter (fun index -> self#region index |> f)
+      method iter_regions : f:(region -> unit) -> unit =
+        fun ~f ->
+          List.init self#regions Fun.id |> List.iter (fun index -> self#region index |> f)
 
-      method iteri_regions : f:(int -> region -> unit) -> unit = fun ~f ->
-        List.init self#regions Fun.id
-        |> List.iter (fun index -> self#region index |> f index)
+      method iteri_regions : f:(int -> region -> unit) -> unit =
+        fun ~f ->
+          List.init self#regions Fun.id
+          |> List.iter (fun index -> self#region index |> f index)
 
       method operands = mlir_operation_get_num_operands self#raw |> Intptr.to_int
 
@@ -383,12 +385,15 @@ module Ir = struct
         fun index value ->
           mlir_operation_set_operand self#raw (Intptr.of_int index) value#raw
 
-      method iter_operands : f:(value -> unit) -> unit = fun ~f ->
-        List.init self#operands Fun.id |> List.iter (fun index -> self#operand index |> f)
+      method iter_operands : f:(value -> unit) -> unit =
+        fun ~f ->
+          List.init self#operands Fun.id
+          |> List.iter (fun index -> self#operand index |> f)
 
-      method iteri_operands : f:(int -> value -> unit) -> unit = fun ~f ->
-        List.init self#operands Fun.id
-        |> List.iter (fun index -> self#operand index |> f index)
+      method iteri_operands : f:(int -> value -> unit) -> unit =
+        fun ~f ->
+          List.init self#operands Fun.id
+          |> List.iter (fun index -> self#operand index |> f index)
 
       method replace_operands
         :  'a.
@@ -415,12 +420,14 @@ module Ir = struct
       method result index =
         mlir_operation_get_result self#raw (Intptr.of_int index) |> new op_result
 
-      method iter_results : f:(op_result -> unit) -> unit = fun ~f ->
-        List.init self#results Fun.id |> List.iter (fun index -> self#result index |> f)
+      method iter_results : f:(op_result -> unit) -> unit =
+        fun ~f ->
+          List.init self#results Fun.id |> List.iter (fun index -> self#result index |> f)
 
-      method iteri_results : f:(int -> op_result -> unit) -> unit = fun ~f ->
-        List.init self#results Fun.id
-        |> List.iter (fun index -> self#result index |> f index)
+      method iteri_results : f:(int -> op_result -> unit) -> unit =
+        fun ~f ->
+          List.init self#results Fun.id
+          |> List.iter (fun index -> self#result index |> f index)
 
       method successors = mlir_operation_get_num_successors self#raw |> Intptr.to_int
 
@@ -430,13 +437,15 @@ module Ir = struct
       method set_successor index (block : block) =
         mlir_operation_set_successor self#raw (Intptr.of_int index) block#raw
 
-      method iter_successors : f:(block -> unit) -> unit = fun ~f ->
-        List.init self#successors Fun.id
-        |> List.iter (fun index -> self#successor index |> f)
+      method iter_successors : f:(block -> unit) -> unit =
+        fun ~f ->
+          List.init self#successors Fun.id
+          |> List.iter (fun index -> self#successor index |> f)
 
-      method iteri_successors : f:(int -> block -> unit) -> unit = fun ~f ->
-        List.init self#successors Fun.id
-        |> List.iter (fun index -> self#successor index |> f index)
+      method iteri_successors : f:(int -> block -> unit) -> unit =
+        fun ~f ->
+          List.init self#successors Fun.id
+          |> List.iter (fun index -> self#successor index |> f index)
 
       method has_inherent_attribute name =
         mlir_operation_has_inherent_attribute_by_name
@@ -488,26 +497,30 @@ module Ir = struct
           self#raw
           (mlir_string_ref_create_from_cstring name)
 
-      method iter_discardable_attributes : f:(Identifier.t * Attribute.t -> unit) -> unit = fun ~f ->
-        List.init self#discardable_attributes Fun.id
-        |> List.iter (fun index ->
-          let entry =
-            mlir_operation_get_discardable_attribute self#raw (Intptr.of_int index)
-          in
-          f
-            ( getf entry MlirNamedAttribute.name |> Identifier.from_raw
-            , getf entry MlirNamedAttribute.attribute |> Attribute.from_raw ))
+      method iter_discardable_attributes : f:(Identifier.t * Attribute.t -> unit) -> unit
+          =
+        fun ~f ->
+          List.init self#discardable_attributes Fun.id
+          |> List.iter (fun index ->
+            let entry =
+              mlir_operation_get_discardable_attribute self#raw (Intptr.of_int index)
+            in
+            f
+              ( getf entry MlirNamedAttribute.name |> Identifier.from_raw
+              , getf entry MlirNamedAttribute.attribute |> Attribute.from_raw ))
 
-      method iteri_discardable_attributes : f:(int -> Identifier.t * Attribute.t -> unit) -> unit = fun ~f ->
-        List.init self#discardable_attributes Fun.id
-        |> List.iter (fun index ->
-          let entry =
-            mlir_operation_get_discardable_attribute self#raw (Intptr.of_int index)
-          in
-          f
-            index
-            ( getf entry MlirNamedAttribute.name |> Identifier.from_raw
-            , getf entry MlirNamedAttribute.attribute |> Attribute.from_raw ))
+      method iteri_discardable_attributes
+        : f:(int -> Identifier.t * Attribute.t -> unit) -> unit =
+        fun ~f ->
+          List.init self#discardable_attributes Fun.id
+          |> List.iter (fun index ->
+            let entry =
+              mlir_operation_get_discardable_attribute self#raw (Intptr.of_int index)
+            in
+            f
+              index
+              ( getf entry MlirNamedAttribute.name |> Identifier.from_raw
+              , getf entry MlirNamedAttribute.attribute |> Attribute.from_raw ))
 
       method verify = mlir_operation_verify self#raw
       method move_after (op : operation) = mlir_operation_move_after self#raw op#raw
@@ -551,25 +564,27 @@ module Ir = struct
         in
         mlir_region_insert_owned_block_before self#raw ref block#raw
 
-      method iter_blocks : f:(block -> unit) -> unit = fun ~f ->
-        let rec iter current =
-          match current with
-          | Some block ->
-            f block;
-            iter block#next
-          | None -> ()
-        in
-        iter self#first
+      method iter_blocks : f:(block -> unit) -> unit =
+        fun ~f ->
+          let rec iter current =
+            match current with
+            | Some block ->
+              f block;
+              iter block#next
+            | None -> ()
+          in
+          iter self#first
 
-      method iteri_blocks : f:(int -> block -> unit) -> unit = fun ~f ->
-        let rec iteri current index =
-          match current with
-          | Some block ->
-            f index block;
-            iteri block#next (index + 1)
-          | None -> ()
-        in
-        iteri self#first 0
+      method iteri_blocks : f:(int -> block -> unit) -> unit =
+        fun ~f ->
+          let rec iteri current index =
+            match current with
+            | Some block ->
+              f index block;
+              iteri block#next (index + 1)
+            | None -> ()
+          in
+          iteri self#first 0
 
       method next =
         mlir_region_get_next_in_operation self#raw
@@ -667,13 +682,15 @@ module Ir = struct
       method erase_argument index =
         mlir_block_erase_argument self#raw (Unsigned.UInt.of_int index)
 
-      method iter_arguments : f:(block_argument -> unit) -> unit = fun ~f ->
-        List.init self#arguments Fun.id
-        |> List.iter (fun index -> self#argument index |> f)
+      method iter_arguments : f:(block_argument -> unit) -> unit =
+        fun ~f ->
+          List.init self#arguments Fun.id
+          |> List.iter (fun index -> self#argument index |> f)
 
-      method iteri_arguments : f:(int -> block_argument -> unit) -> unit = fun ~f ->
-        List.init self#arguments Fun.id
-        |> List.iter (fun index -> self#argument index |> f index)
+      method iteri_arguments : f:(int -> block_argument -> unit) -> unit =
+        fun ~f ->
+          List.init self#arguments Fun.id
+          |> List.iter (fun index -> self#argument index |> f index)
 
       method detach = mlir_block_detach self#raw
       method destroy = mlir_block_destroy self#raw

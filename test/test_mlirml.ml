@@ -69,18 +69,16 @@ let%test "matmul" =
     let location = Location.unknown ctx in
     let float64 = Type.float64 ctx in
     let indexing_maps =
-      [ AffineMap.get ctx 3 0 [AffineExpr.dim ctx 0; AffineExpr.dim ctx 1]
-      ; AffineMap.get ctx 3 0 [AffineExpr.dim ctx 1; AffineExpr.dim ctx 2]
-      ; AffineMap.get ctx 3 0 [AffineExpr.dim ctx 0; AffineExpr.dim ctx 2]
+      [ AffineMap.get ctx 3 0 [ AffineExpr.dim ctx 0; AffineExpr.dim ctx 1 ]
+      ; AffineMap.get ctx 3 0 [ AffineExpr.dim ctx 1; AffineExpr.dim ctx 2 ]
+      ; AffineMap.get ctx 3 0 [ AffineExpr.dim ctx 0; AffineExpr.dim ctx 2 ]
       ]
     in
-    let iterator_types = [ "parallel"; "reduction"; "parallel"] in
+    let iterator_types = [ "parallel"; "reduction"; "parallel" ] in
     let dcsr =
       SparseTensorEncodingAttr.get
         ctx
-        [ LevelType.compressed []
-        ; LevelType.compressed []
-        ]
+        [ LevelType.compressed []; LevelType.compressed [] ]
         (AffineMap.multi_dim_identity ctx 2)
         None
         None
@@ -144,8 +142,8 @@ let%test "matmul" =
     \    %c1 = arith.constant 1 : index\n\
     \    %0 = tensor.empty(%c0, %c1) : tensor<?x?xf64, #sparse>\n\
     \    %1 = linalg.generic {indexing_maps = [#map, #map1, #map2], iterator_types = \
-     [\"parallel\", \"reduction\", \"parallel\"]} ins(%arg0, %arg1 : tensor<?x?xf64, #sparse>, \
-     tensor<?x?xf64, #sparse>) outs(%0 : tensor<?x?xf64, #sparse>) {\n\
+     [\"parallel\", \"reduction\", \"parallel\"]} ins(%arg0, %arg1 : tensor<?x?xf64, \
+     #sparse>, tensor<?x?xf64, #sparse>) outs(%0 : tensor<?x?xf64, #sparse>) {\n\
     \    ^bb0(%in: f64, %in_0: f64, %out: f64):\n\
     \      %2 = arith.mulf %in, %in_0 : f64\n\
     \      %3 = arith.addf %2, %out : f64\n\

@@ -6,7 +6,6 @@ open Ir.Ir
 open Utils
 
 module AffineMap = struct
-
   module AffineExpr = struct
     type raw = MlirAffineExpr.t structure
 
@@ -21,57 +20,95 @@ module AffineMap = struct
       | FloorDiv of t * t * raw
 
     let rec from_raw raw =
-      if mlir_affine_expr_is_adim raw then Dim (mlir_affine_dim_expr_get_position raw |> Intptr.to_int, raw)
-      else if mlir_affine_expr_is_asymbol raw then Symbol (mlir_affine_symbol_expr_get_position raw |> Intptr.to_int, raw)
-      else if mlir_affine_expr_is_aconstant raw then Constant (mlir_affine_constant_expr_get_value raw |> Int64.to_int, raw)
-      else if mlir_affine_expr_is_aadd raw then Add (mlir_affine_binary_op_expr_get_lhs raw |> from_raw, mlir_affine_binary_op_expr_get_rhs raw |> from_raw, raw)
-      else if mlir_affine_expr_is_amul raw then Mul (mlir_affine_binary_op_expr_get_lhs raw |> from_raw, mlir_affine_binary_op_expr_get_rhs raw |> from_raw, raw)
-      else if mlir_affine_expr_is_amod raw then Mod (mlir_affine_binary_op_expr_get_lhs raw |> from_raw, mlir_affine_binary_op_expr_get_rhs raw |> from_raw, raw)
-      else if mlir_affine_expr_is_aceil_div raw then CeilDiv (mlir_affine_binary_op_expr_get_lhs raw |> from_raw, mlir_affine_binary_op_expr_get_rhs raw |> from_raw, raw)
-      else if mlir_affine_expr_is_afloor_div raw then FloorDiv (mlir_affine_binary_op_expr_get_lhs raw |> from_raw, mlir_affine_binary_op_expr_get_rhs raw |> from_raw, raw)
-      else Error ("Unable to construct an affine expression from " ^ print_raw_as_string mlir_affine_expr_print raw) |> raise
+      if mlir_affine_expr_is_adim raw
+      then Dim (mlir_affine_dim_expr_get_position raw |> Intptr.to_int, raw)
+      else if mlir_affine_expr_is_asymbol raw
+      then Symbol (mlir_affine_symbol_expr_get_position raw |> Intptr.to_int, raw)
+      else if mlir_affine_expr_is_aconstant raw
+      then Constant (mlir_affine_constant_expr_get_value raw |> Int64.to_int, raw)
+      else if mlir_affine_expr_is_aadd raw
+      then
+        Add
+          ( mlir_affine_binary_op_expr_get_lhs raw |> from_raw
+          , mlir_affine_binary_op_expr_get_rhs raw |> from_raw
+          , raw )
+      else if mlir_affine_expr_is_amul raw
+      then
+        Mul
+          ( mlir_affine_binary_op_expr_get_lhs raw |> from_raw
+          , mlir_affine_binary_op_expr_get_rhs raw |> from_raw
+          , raw )
+      else if mlir_affine_expr_is_amod raw
+      then
+        Mod
+          ( mlir_affine_binary_op_expr_get_lhs raw |> from_raw
+          , mlir_affine_binary_op_expr_get_rhs raw |> from_raw
+          , raw )
+      else if mlir_affine_expr_is_aceil_div raw
+      then
+        CeilDiv
+          ( mlir_affine_binary_op_expr_get_lhs raw |> from_raw
+          , mlir_affine_binary_op_expr_get_rhs raw |> from_raw
+          , raw )
+      else if mlir_affine_expr_is_afloor_div raw
+      then
+        FloorDiv
+          ( mlir_affine_binary_op_expr_get_lhs raw |> from_raw
+          , mlir_affine_binary_op_expr_get_rhs raw |> from_raw
+          , raw )
+      else
+        Error
+          ("Unable to construct an affine expression from "
+           ^ print_raw_as_string mlir_affine_expr_print raw)
+        |> raise
+
 
     let raw = function
-    | Dim (_, raw) -> raw
-    | Symbol (_, raw) -> raw
-    | Constant (_, raw) -> raw
-    | Add (_, _, raw) -> raw
-    | Mul (_, _, raw) -> raw
-    | Mod (_, _, raw) -> raw
-    | CeilDiv (_, _, raw) -> raw
-    | FloorDiv (_, _, raw) -> raw
+      | Dim (_, raw) -> raw
+      | Symbol (_, raw) -> raw
+      | Constant (_, raw) -> raw
+      | Add (_, _, raw) -> raw
+      | Mul (_, _, raw) -> raw
+      | Mod (_, _, raw) -> raw
+      | CeilDiv (_, _, raw) -> raw
+      | FloorDiv (_, _, raw) -> raw
+
 
     let dim ctx pos = mlir_affine_dim_expr_get ctx#raw (Intptr.of_int pos) |> from_raw
 
-    let symbol ctx pos = mlir_affine_symbol_expr_get ctx#raw (Intptr.of_int pos) |> from_raw
+    let symbol ctx pos =
+      mlir_affine_symbol_expr_get ctx#raw (Intptr.of_int pos) |> from_raw
 
-    let constant ctx value = mlir_affine_constant_expr_get ctx#raw (Int64.of_int value) |> from_raw
+
+    let constant ctx value =
+      mlir_affine_constant_expr_get ctx#raw (Int64.of_int value) |> from_raw
+
 
     let add lhs rhs = mlir_affine_mul_expr_get (raw lhs) (raw rhs) |> from_raw
-
     let mul lhs rhs = mlir_affine_mul_expr_get (raw lhs) (raw rhs) |> from_raw
-
     let modulo lhs rhs = mlir_affine_mod_expr_get (raw lhs) (raw rhs) |> from_raw
-
     let ceil_div lhs rhs = mlir_affine_ceil_div_expr_get (raw lhs) (raw rhs) |> from_raw
-
     let floor_div lhs rhs = mlir_affine_floor_div_expr_get (raw lhs) (raw rhs) |> from_raw
-
     let context expr = mlir_affine_expr_get_context (raw expr) |> Context.from_raw
+    let compose expr map = mlir_affine_expr_compose (raw expr) map#raw |> from_raw
 
-    let compose expr map =
-      mlir_affine_expr_compose (raw expr) map#raw |> from_raw
-    
-    let is_symbolic_or_constant expr = raw expr |> mlir_affine_expr_is_symbolic_or_constant
-    
+    let is_symbolic_or_constant expr =
+      raw expr |> mlir_affine_expr_is_symbolic_or_constant
+
+
     let is_pure_affine expr = raw expr |> mlir_affine_expr_is_symbolic_or_constant
 
-    let largest_known_divisor expr = raw expr |> mlir_affine_expr_get_largest_known_divisor |> Int64.to_int
+    let largest_known_divisor expr =
+      raw expr |> mlir_affine_expr_get_largest_known_divisor |> Int64.to_int
 
-    let is_multiple_of expr factor = mlir_affine_expr_is_multiple_of (raw expr) (Int64.of_int factor)
+
+    let is_multiple_of expr factor =
+      mlir_affine_expr_is_multiple_of (raw expr) (Int64.of_int factor)
+
 
     let is_function_of_dim expr position =
       mlir_affine_expr_is_function_of_dim (raw expr) (Intptr.of_int position)
+
 
     let is_binary expr = raw expr |> mlir_affine_expr_is_abinary
     let equal e1 e2 = mlir_affine_expr_equal (raw e1) (raw e2)
@@ -80,57 +117,61 @@ module AffineMap = struct
   end
 
   module AffineMap = struct
+    class t raw =
+      object (self)
+        method context = mlir_affine_map_get_context self#raw |> Context.from_raw
+        method is_identity = mlir_affine_map_is_identity self#raw
+        method is_minor_identity = mlir_affine_map_is_minor_identity self#raw
+        method is_empty = mlir_affine_map_is_empty self#raw
+        method is_constant = mlir_affine_map_is_single_constant self#raw
 
-    class t raw = object (self)
-      method context = mlir_affine_map_get_context self#raw |> Context.from_raw
-      method is_identity = mlir_affine_map_is_identity self#raw
-      method is_minor_identity = mlir_affine_map_is_minor_identity self#raw
-      method is_empty = mlir_affine_map_is_empty self#raw
-      method is_constant = mlir_affine_map_is_single_constant self#raw
-      method is_projected_permutation = mlir_affine_map_is_projected_permutation self#raw
-      method is_permutation = mlir_affine_map_is_permutation self#raw
+        method is_projected_permutation =
+          mlir_affine_map_is_projected_permutation self#raw
 
-      method constant_result =
-        if self#is_constant
-        then Some (mlir_affine_map_get_single_constant_result self#raw |> Int64.to_int)
-        else None
+        method is_permutation = mlir_affine_map_is_permutation self#raw
 
-      method dims = mlir_affine_map_get_num_dims self#raw |> Intptr.to_int
-      method symbols = mlir_affine_map_get_num_symbols self#raw |> Intptr.to_int
-      method results = mlir_affine_map_get_num_results self#raw |> Intptr.to_int
+        method constant_result =
+          if self#is_constant
+          then Some (mlir_affine_map_get_single_constant_result self#raw |> Int64.to_int)
+          else None
 
-      method result position =
-        mlir_affine_map_get_result self#raw (Intptr.of_int position) |> AffineExpr.from_raw
+        method dims = mlir_affine_map_get_num_dims self#raw |> Intptr.to_int
+        method symbols = mlir_affine_map_get_num_symbols self#raw |> Intptr.to_int
+        method results = mlir_affine_map_get_num_results self#raw |> Intptr.to_int
 
-      method inputs = mlir_affine_map_get_num_inputs self#raw |> Intptr.to_int
+        method result position =
+          mlir_affine_map_get_result self#raw (Intptr.of_int position)
+          |> AffineExpr.from_raw
 
-      method sub_map result_positions =
-        let pos_array =
-          CArray.of_list Ctypes.intptr_t (List.map Intptr.of_int result_positions)
-        in
-        mlir_affine_map_get_sub_map
-          self#raw
-          (List.length result_positions |> Intptr.of_int)
-          (CArray.start pos_array)
-        |> new t
+        method inputs = mlir_affine_map_get_num_inputs self#raw |> Intptr.to_int
 
-      method major_sub_map results =
-        mlir_affine_map_get_major_sub_map self#raw (Intptr.of_int results) |> new t
+        method sub_map result_positions =
+          let pos_array =
+            CArray.of_list Ctypes.intptr_t (List.map Intptr.of_int result_positions)
+          in
+          mlir_affine_map_get_sub_map
+            self#raw
+            (List.length result_positions |> Intptr.of_int)
+            (CArray.start pos_array)
+          |> new t
 
-      method minor_sub_map results =
-        mlir_affine_map_get_minor_sub_map self#raw (Intptr.of_int results) |> new t
+        method major_sub_map results =
+          mlir_affine_map_get_major_sub_map self#raw (Intptr.of_int results) |> new t
 
-      method replace expr replacement newDims newSymbols =
-        mlir_affine_map_replace
-          self#raw
-          (AffineExpr.raw expr)
-          (AffineExpr.raw replacement)
-          (Intptr.of_int newDims)
-          (Intptr.of_int newSymbols)
-        |> new t
+        method minor_sub_map results =
+          mlir_affine_map_get_minor_sub_map self#raw (Intptr.of_int results) |> new t
 
-      method raw = raw
-    end
+        method replace expr replacement newDims newSymbols =
+          mlir_affine_map_replace
+            self#raw
+            (AffineExpr.raw expr)
+            (AffineExpr.raw replacement)
+            (Intptr.of_int newDims)
+            (Intptr.of_int newSymbols)
+          |> new t
+
+        method raw = raw
+      end
 
     let from_raw = new t
     let empty ctx = mlir_affine_map_empty_get ctx#raw |> from_raw
@@ -141,9 +182,7 @@ module AffineMap = struct
 
 
     let get ctx dims symbols exprs =
-      let expr_array =
-        CArray.of_list MlirAffineExpr.t (List.map AffineExpr.raw exprs)
-      in
+      let expr_array = CArray.of_list MlirAffineExpr.t (List.map AffineExpr.raw exprs) in
       mlir_affine_map_get
         ctx#raw
         (Intptr.of_int dims)
