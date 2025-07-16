@@ -140,31 +140,31 @@ module SparseTensorEncodingAttr = struct
           LevelType.Batch (LevelNonDefaultProperties.empty, raw)
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_COMPRESSED ->
           let props = ref LevelNonDefaultProperties.empty in
-          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_ORDERED MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_ORDERED MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero > 0 then
             props := LevelNonDefaultProperties.add LevelNonDefaultProperty.NonOrdered !props
           else ();
-          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_UNIQUE MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_UNIQUE MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero > 0 then
             props := LevelNonDefaultProperties.add LevelNonDefaultProperty.NonUnique !props
           else ();
           LevelType.Compressed (!props, raw)
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_LOOSE_COMPRESSED ->
           let props = ref LevelNonDefaultProperties.empty in
-          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_ORDERED MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_ORDERED MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero > 0 then
             props := LevelNonDefaultProperties.add LevelNonDefaultProperty.NonOrdered !props
           else ();
-          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_UNIQUE MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_UNIQUE MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero > 0 then
             props := LevelNonDefaultProperties.add LevelNonDefaultProperty.NonUnique !props
           else ();
           LevelType.LooseCompressed (!props, raw)
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_SINGLETON ->
            let props = ref LevelNonDefaultProperties.empty in
-          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_ORDERED MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_ORDERED MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero > 0 then
             props := LevelNonDefaultProperties.add LevelNonDefaultProperty.NonOrdered !props
           else ();
-          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_UNIQUE MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_UNIQUE MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero > 0 then
             props := LevelNonDefaultProperties.add LevelNonDefaultProperty.NonUnique !props
           else ();
-          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_SOA MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_SOA MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero > 0 then
             props := LevelNonDefaultProperties.add LevelNonDefaultProperty.StructureOfArrays !props
           else ();
           LevelType.Singleton (!props, raw)
