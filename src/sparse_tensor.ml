@@ -131,7 +131,6 @@ module SparseTensorEncodingAttr = struct
       method level_rank =
         mlir_sparse_tensor_encoding_get_lvl_rank self#raw |> Intptr.to_int
 
-      (* TODO: expose non default properties *)
       method level_type lvl =
         let raw = mlir_sparse_tensor_encoding_attr_get_lvl_type self#raw (Intptr.of_int lvl) in
         match mlir_sparse_tensor_encoding_attr_get_lvl_fmt self#raw (Intptr.of_int lvl) with
@@ -140,11 +139,35 @@ module SparseTensorEncodingAttr = struct
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_BATCH ->
           LevelType.Batch (LevelNonDefaultProperties.empty, raw)
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_COMPRESSED ->
-          LevelType.Compressed (LevelNonDefaultProperties.empty, raw)
-        | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_SINGLETON ->
-          LevelType.LooseCompressed (LevelNonDefaultProperties.empty, raw)
+          let props = ref LevelNonDefaultProperties.empty in
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_ORDERED MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+            props := LevelNonDefaultProperties.add LevelNonDefaultProperty.NonOrdered !props
+          else ();
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_UNIQUE MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+            props := LevelNonDefaultProperties.add LevelNonDefaultProperty.NonUnique !props
+          else ();
+          LevelType.Compressed (!props, raw)
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_LOOSE_COMPRESSED ->
-          LevelType.Singleton (LevelNonDefaultProperties.empty, raw)
+          let props = ref LevelNonDefaultProperties.empty in
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_ORDERED MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+            props := LevelNonDefaultProperties.add LevelNonDefaultProperty.NonOrdered !props
+          else ();
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_UNIQUE MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+            props := LevelNonDefaultProperties.add LevelNonDefaultProperty.NonUnique !props
+          else ();
+          LevelType.LooseCompressed (!props, raw)
+        | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_SINGLETON ->
+           let props = ref LevelNonDefaultProperties.empty in
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_ORDERED MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+            props := LevelNonDefaultProperties.add LevelNonDefaultProperty.NonOrdered !props
+          else ();
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_NON_UNIQUE MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+            props := LevelNonDefaultProperties.add LevelNonDefaultProperty.NonUnique !props
+          else ();
+          if Int64.compare (Int64.logand (Unsigned.UInt64.to_int64 raw) (List.assoc MlirSparseTensorLevelPropertyNondefault.MLIR_SPARSE_PROPERTY_SOA MlirSparseTensorLevelPropertyNondefault.mapping)) Int64.zero == 0 then
+            props := LevelNonDefaultProperties.add LevelNonDefaultProperty.StructureOfArrays !props
+          else ();
+          LevelType.Singleton (!props, raw)
         | MlirSparseTensorLevelFormat.MLIR_SPARSE_TENSOR_LEVEL_N_OUT_OF_M ->
           let n = mlir_sparse_tensor_encoding_attr_get_structured_n raw |> Unsigned.UInt.to_int
           and m = mlir_sparse_tensor_encoding_attr_get_structured_m raw |> Unsigned.UInt.to_int in
