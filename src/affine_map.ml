@@ -84,7 +84,7 @@ module AffineMap = struct
       mlir_affine_constant_expr_get ctx#raw (Int64.of_int value) |> from_raw
 
 
-    let add lhs rhs = mlir_affine_mul_expr_get (raw lhs) (raw rhs) |> from_raw
+    let add lhs rhs = mlir_affine_add_expr_get (raw lhs) (raw rhs) |> from_raw
     let mul lhs rhs = mlir_affine_mul_expr_get (raw lhs) (raw rhs) |> from_raw
     let modulo lhs rhs = mlir_affine_mod_expr_get (raw lhs) (raw rhs) |> from_raw
     let ceil_div lhs rhs = mlir_affine_ceil_div_expr_get (raw lhs) (raw rhs) |> from_raw
