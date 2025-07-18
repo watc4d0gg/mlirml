@@ -48,7 +48,7 @@ let%test "func" =
          ~init:(fun body ->
            let sum = Arith.addi (body#argument 0) (body#argument 1) location in
            body#append_operation sum;
-           body#append_operation @@ Func.return [ sum#result 0 ] location);
+           [ sum#result 0 ]);
     let module_op = m#to_operation in
     assert module_op#verify;
     print_as_string Operation.print module_op)
@@ -123,10 +123,10 @@ let%test "matmul" =
                  body#append_operation mul;
                  let sum = Arith.addf (mul#result 0) (body#argument 2) location in
                  body#append_operation sum;
-                 body#append_operation @@ Linalg.yield [ sum#result 0 ] location)
+                 [ sum#result 0 ])
            in
            body#append_operation kernel;
-           body#append_operation @@ Func.return [ kernel#result 0 ] location);
+           [ kernel#result 0 ]);
     let module_op = m#to_operation in
     assert module_op#verify;
     print_as_string Operation.print module_op)

@@ -8,7 +8,7 @@ module Func : sig
     -> StringAttr.t
     -> #TypedAttr.t
     -> (Identifier.t * #Attribute.t) list
-    -> init:(Block.t -> unit)
+    -> init:(Block.t -> #Value.t list)
     -> Location.t
     -> Operation.t
 

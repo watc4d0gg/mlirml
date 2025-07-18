@@ -8,7 +8,7 @@ module Linalg : sig
     -> #Value.t list
     -> AffineMap.t list
     -> string list
-    -> init:(Block.t -> unit)
+    -> init:(Block.t -> #Value.t list)
     -> Location.t
     -> Operation.t
 

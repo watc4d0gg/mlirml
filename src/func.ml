@@ -3,6 +3,12 @@ open Builtin_attributes
 open Builtin_types
 
 module Func = struct
+
+  let return results location =
+    OpBuilder.get "func.return" location
+    |> OpBuilder.add_operands results
+    |> OpBuilder.build false
+  
   let func ctx (name : StringAttr.t) (t : #TypedAttr.t) attributes ~init location =
     OpBuilder.get "func.func" location
     |> OpBuilder.add_attributes [ Identifier.get ctx "sym_name", name ]
@@ -16,15 +22,10 @@ module Func = struct
                 input_type, location)
             in
             let body = Block.get inputs in
-            init body;
+            let results = init body in
+            body#append_operation @@ return results location;
             region#append_block body;
             region)
          ]
     |> OpBuilder.build true
-
-
-  let return results location =
-    OpBuilder.get "func.return" location
-    |> OpBuilder.add_operands results
-    |> OpBuilder.build false
 end
