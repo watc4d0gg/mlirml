@@ -97,35 +97,40 @@ module ShapedType = struct
 
       method element_type = mlir_shaped_type_get_element_type self#raw |> Type.from_raw
       method has_rank = mlir_shaped_type_has_rank self#raw
-
-      method rank =
-        if self#has_rank
-        then Some (mlir_shaped_type_get_rank self#raw |> Int64.to_int)
-        else None
-
       method has_static_shape = mlir_shaped_type_has_static_shape self#raw
-
-      method is_dynamic_dimension dim =
-        mlir_shaped_type_is_dynamic_dim self#raw (Intptr.of_int dim)
-
-      method dimension_size dim =
-        match self#rank with
-        | None -> None
-        | Some rank ->
-          if dim >= rank
-          then None
-          else (
-            let result = mlir_shaped_type_get_dim_size self#raw (Intptr.of_int dim) in
-            Some
-              (if mlir_shaped_type_is_dynamic_size result
-               then Dynamic
-               else Static (Int64.to_int result)))
-
       method context = mlir_type_get_context self#raw |> Context.from_raw
       method id = mlir_type_get_type_id self#raw |> TypeId.from_raw
       method dialect = mlir_type_get_dialect self#raw |> Dialect.from_raw
       method raw = raw
     end
+
+  let cast t = new t t#raw
+end
+
+module RankedShapedType = struct
+  class t raw = object (self)
+    initializer
+      if mlir_type_is_ashaped raw && mlir_shaped_type_has_rank raw
+      then ()
+      else
+        Error
+          ("Unable to cast the type "
+            ^ print_raw_as_string mlir_type_print raw
+            ^ " to a ranked Shaped type")
+        |> raise
+
+    inherit ShapedType.t raw
+
+    method rank = mlir_shaped_type_get_rank self#raw |> Int64.to_int
+
+    method is_dynamic_dimension dim = mlir_shaped_type_is_dynamic_dim self#raw (Intptr.of_int dim)
+
+    method dimension_size dim =
+      let result = mlir_shaped_type_get_dim_size self#raw (Intptr.of_int dim) in
+      if mlir_shaped_type_is_dynamic_size result
+      then ShapedType.Dynamic
+      else ShapedType.Static (Int64.to_int result)
+  end
 
   let cast t = new t t#raw
 end
@@ -163,7 +168,8 @@ module RankedTensorType = struct
              ^ " to a RankedTensor type")
           |> raise
 
-      inherit TensorType.t raw
+      inherit RankedShapedType.t raw
+      inherit! TensorType.t raw
       method! id = mlir_ranked_tensor_type_get_type_id () |> TypeId.from_raw
 
       method encoding =

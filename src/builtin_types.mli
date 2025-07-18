@@ -36,19 +36,27 @@ module ShapedType : sig
     (** [has_rank] checks whether the given shaped type is ranked *)
     method has_rank : bool
 
-    (** [rank] returns the rank of the given ranked shaped type *)
-    method rank : int option
-
     (** [has_static_shape] checks whether the given shaped type has a static shape *)
     method has_static_shape : bool
 
-    (** [is_dynamic_dimension dim] checks whether the [dim]-th dimension of the given shaped type is dynamic *)
+    (* TODO: dynamic strides and offsets *)
+  end
+
+  val cast : #Type.t -> t
+end
+
+module RankedShapedType : sig
+  class type t = object
+    inherit ShapedType.t
+
+    (** [rank] returns the rank of the given ranked shaped type *)
+    method rank : int
+
+        (** [is_dynamic_dimension dim] checks whether the [dim]-th dimension of the given shaped type is dynamic *)
     method is_dynamic_dimension : int -> bool
 
     (** [dimension_size dim] returns the [dim]-th dimension of the given ranked shaped type, or nothing if the shaped type is unranked *)
-    method dimension_size : int -> dim_size option
-
-    (* TODO: dynamic strides and offsets *)
+    method dimension_size : int -> ShapedType.dim_size
   end
 
   val cast : #Type.t -> t
@@ -68,6 +76,7 @@ end
 
 module RankedTensorType : sig
   class type t = object
+    inherit RankedShapedType.t
     inherit TensorType.t
 
     (** [encoding] gets the 'encoding' attribute from the ranked tensor type, returning a nothing if none is present *)
