@@ -3,12 +3,12 @@ open Builtin_attributes
 open Builtin_types
 
 module Linalg = struct
-
   let yield values location =
     OpBuilder.get "linalg.yield" location
     |> OpBuilder.add_operands values
     |> OpBuilder.build false
-  
+
+
   let generic ctx inputs outputs indexing_maps iterator_types ~init location =
     let operandSegmentSizes =
       [ List.length inputs |> Int32.of_int; List.length outputs |> Int32.of_int ]

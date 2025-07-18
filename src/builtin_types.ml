@@ -108,29 +108,30 @@ module ShapedType = struct
 end
 
 module RankedShapedType = struct
-  class t raw = object (self)
-    initializer
-      if mlir_type_is_ashaped raw && mlir_shaped_type_has_rank raw
-      then ()
-      else
-        Error
-          ("Unable to cast the type "
-            ^ print_raw_as_string mlir_type_print raw
-            ^ " to a ranked Shaped type")
-        |> raise
+  class t raw =
+    object (self)
+      initializer
+        if mlir_type_is_ashaped raw && mlir_shaped_type_has_rank raw
+        then ()
+        else
+          Error
+            ("Unable to cast the type "
+             ^ print_raw_as_string mlir_type_print raw
+             ^ " to a ranked Shaped type")
+          |> raise
 
-    inherit ShapedType.t raw
+      inherit ShapedType.t raw
+      method rank = mlir_shaped_type_get_rank self#raw |> Int64.to_int
 
-    method rank = mlir_shaped_type_get_rank self#raw |> Int64.to_int
+      method is_dynamic_dimension dim =
+        mlir_shaped_type_is_dynamic_dim self#raw (Intptr.of_int dim)
 
-    method is_dynamic_dimension dim = mlir_shaped_type_is_dynamic_dim self#raw (Intptr.of_int dim)
-
-    method dimension_size dim =
-      let result = mlir_shaped_type_get_dim_size self#raw (Intptr.of_int dim) in
-      if mlir_shaped_type_is_dynamic_size result
-      then ShapedType.Dynamic
-      else ShapedType.Static (Int64.to_int result)
-  end
+      method dimension_size dim =
+        let result = mlir_shaped_type_get_dim_size self#raw (Intptr.of_int dim) in
+        if mlir_shaped_type_is_dynamic_size result
+        then ShapedType.Dynamic
+        else ShapedType.Static (Int64.to_int result)
+    end
 
   let cast t = new t t#raw
 end

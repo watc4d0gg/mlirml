@@ -1,6 +1,6 @@
 open Ir.Ir
 
-let _unary_operation name operand attributes location =
+let unary_operation name operand attributes location =
   OpBuilder.get name location
   |> OpBuilder.add_operands [ operand ]
   |> OpBuilder.add_attributes attributes
@@ -18,6 +18,7 @@ let binary_operation name lhs rhs attributes location =
 
 
 module Arith = struct
+  let negf operand location = unary_operation "arith.negf" operand [] location
   let addi lhs rhs location = binary_operation "arith.addi" lhs rhs [] location
   let addf lhs rhs location = binary_operation "arith.addf" lhs rhs [] location
   let subf lhs rhs location = binary_operation "arith.subf" lhs rhs [] location

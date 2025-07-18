@@ -52,7 +52,7 @@ module RankedShapedType : sig
     (** [rank] returns the rank of the given ranked shaped type *)
     method rank : int
 
-        (** [is_dynamic_dimension dim] checks whether the [dim]-th dimension of the given shaped type is dynamic *)
+    (** [is_dynamic_dimension dim] checks whether the [dim]-th dimension of the given shaped type is dynamic *)
     method is_dynamic_dimension : int -> bool
 
     (** [dimension_size dim] returns the [dim]-th dimension of the given ranked shaped type, or nothing if the shaped type is unranked *)
