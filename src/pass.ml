@@ -92,6 +92,9 @@ module OpPassManager = struct
       result, if String.equal !error_message String.empty then None else Some !error_message
     method raw = raw
   end
+
+  let from_raw = new t
+  
 end
 
 module PassManager = struct
@@ -102,7 +105,7 @@ module PassManager = struct
     method enable_ir_printing print_before_all print_after_all print_module_scope print_after_only_on_change print_after_only_on_failure (flags : OpPrintingFlags.t) tree_printing_path =
       mlir_pass_manager_enable_irprinting self#raw print_before_all print_after_all print_module_scope print_after_only_on_change print_after_only_on_failure flags#raw (mlir_string_ref_create_from_cstring tree_printing_path)
     method enable_verifier enable = mlir_pass_manager_enable_verifier self#raw enable
-    method as_op_pass_manager = mlir_pass_manager_get_as_op_pass_manager self#raw
+    method as_op_pass_manager = mlir_pass_manager_get_as_op_pass_manager self#raw |> OpPassManager.from_raw
     method nested_under = mlir_pass_manager_get_nested_under self#raw
     method add_pass pass = mlir_pass_manager_add_owned_pass self#raw pass
     method raw = raw
