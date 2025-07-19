@@ -358,6 +358,7 @@ module SparseTensor = struct
     |> OpBuilder.add_operands [ left ]
     |> OpBuilder.add_operands [ right ]
     |> OpBuilder.add_operands [ identity ]
+    |> OpBuilder.add_results [ identity#get_type ]
     |> OpBuilder.add_regions
       [ let region = Region.get () in
         let inputs = [ left#get_type, location; right#get_type, location ]
