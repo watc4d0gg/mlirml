@@ -79,3 +79,10 @@ module SparseTensorEncodingAttr : sig
     -> #Attribute.t option
     -> t
 end
+
+module SparseTensor : sig
+
+  val reduce : #Value.t -> #Value.t -> #Value.t -> Location.t -> init:(Block.t -> #Value.t list) -> Operation.t
+
+  val yield : #Value.t list -> Location.t -> Operation.t
+end

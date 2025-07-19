@@ -345,3 +345,29 @@ module SparseTensorEncodingAttr = struct
        |> Option.value ~default:(mlir_attribute_get_null ()))
     |> from_raw
 end
+
+module SparseTensor = struct
+
+  let yield results location =
+    OpBuilder.get "sparse_tensor.yield" location
+    |> OpBuilder.add_operands results
+    |> OpBuilder.build false
+
+  let reduce left right identity location ~init =
+    OpBuilder.get "sparse_tensor.reduce" location
+    |> OpBuilder.add_operands [ left ]
+    |> OpBuilder.add_operands [ right ]
+    |> OpBuilder.add_operands [ identity ]
+    |> OpBuilder.add_regions
+      [ let region = Region.get () in
+        let inputs = [ left#get_type, location; right#get_type, location ]
+        in
+        let body = Block.get inputs in
+        let results = init body in
+        body#append_operation @@ yield results location;
+        region#append_block body;
+        region
+      ]
+    |> OpBuilder.build true
+
+end
