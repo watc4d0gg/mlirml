@@ -4,6 +4,7 @@ include Ir
 include Affine_map.AffineMap
 include Builtin_attributes
 include Builtin_types
+include Pass
 include Arith
 include Func
 include Sparse_tensor

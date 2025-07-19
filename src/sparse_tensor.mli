@@ -85,4 +85,6 @@ module SparseTensor : sig
   val reduce : #Value.t -> #Value.t -> #Value.t -> Location.t -> init:(Block.t -> #Value.t list) -> Operation.t
 
   val yield : #Value.t list -> Location.t -> Operation.t
+
+  val register_passes : unit -> unit
 end

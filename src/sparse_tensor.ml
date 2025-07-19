@@ -371,4 +371,5 @@ module SparseTensor = struct
       ]
     |> OpBuilder.build true
 
+  let register_passes = mlir_register_sparse_tensor_passes
 end

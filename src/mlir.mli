@@ -10,6 +10,8 @@ include module type of Affine_map.AffineMap
 include module type of Builtin_attributes
 include module type of Builtin_types
 
+include module type of Pass
+
 include module type of Arith (** @inline *)
 
 include module type of Func (** @inline *)
