@@ -1,6 +1,7 @@
 open Ctypes
 open Bindings.Types
 open Ir.Ir
+open Sparse_tensor
 
 module FunctionType : sig
   class type t = object
@@ -80,7 +81,7 @@ module RankedTensorType : sig
     inherit TensorType.t
 
     (** [encoding] gets the 'encoding' attribute from the ranked tensor type, returning a nothing if none is present *)
-    method encoding : Attribute.t option
+    method encoding : SparseTensorEncodingAttr.t option
   end
 
   val from_raw : MlirType.t structure -> t
@@ -88,7 +89,7 @@ module RankedTensorType : sig
   (** [get dims element encoding location] creates a tensor type of a fixed rank with the given shape, element type,
     and optional encoding in the same context as the element type. The type is owned by the context. On illegal arguments,
     the function emits appropriate diagnostics and throws a runtime error. *)
-  val get : ShapedType.dim_size list -> #Type.t -> #Attribute.t option -> Location.t -> t
+  val get : ShapedType.dim_size list -> #Type.t -> SparseTensorEncodingAttr.t option -> Location.t -> t
 end
 
 module UnrankedTensorType : sig

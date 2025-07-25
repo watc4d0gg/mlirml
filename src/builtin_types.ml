@@ -5,6 +5,7 @@ open Error
 open Ir.Ir
 open Support
 open Utils
+open Sparse_tensor
 
 module FunctionType = struct
   class t raw =
@@ -175,7 +176,7 @@ module RankedTensorType = struct
 
       method encoding =
         mlir_ranked_tensor_type_get_encoding self#raw
-        |> null_to_opt mlir_attribute_is_null Attribute.from_raw
+        |> null_to_opt mlir_attribute_is_null SparseTensorEncodingAttr.from_raw
     end
 
   let from_raw = new t

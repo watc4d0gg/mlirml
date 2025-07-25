@@ -17,7 +17,7 @@ module ExternalPass = struct
 
   let from_raw = new t
 
-  let create id name argument description op dialects ~on_construct ~on_destruct ~on_clone ~init ~run =
+  let create id name arg description op dialects ~on_construct ~on_destruct ~on_clone ~init ~run =
     let dialect_array = dialects |> List.map (fun dialect -> dialect#raw) |> CArray.of_list MlirDialectHandle.t in
     let callbacks = Ctypes.make
       ?finalise:(Some (fun value ->
@@ -62,7 +62,7 @@ module ExternalPass = struct
       (match name with
       | Some value -> mlir_string_ref_create_from_cstring value
       | None -> mlir_string_ref_create_from_cstring "")
-      (mlir_string_ref_create_from_cstring argument)
+      (mlir_string_ref_create_from_cstring arg)
       (mlir_string_ref_create_from_cstring description)
       (mlir_string_ref_create_from_cstring op)
       (List.length dialects |> Intptr.of_int)
@@ -94,7 +94,7 @@ module OpPassManager = struct
   end
 
   let from_raw = new t
-  
+
 end
 
 module PassManager = struct
