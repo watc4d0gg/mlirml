@@ -6,4 +6,11 @@ module Tensor = struct
     |> OpBuilder.add_operands dynamic_sizes
     |> OpBuilder.add_results [ result_type ]
     |> OpBuilder.build true
+
+  let insert value destination indices location =
+    OpBuilder.get "tensor.insert" location
+    |> OpBuilder.add_operands [ value ]
+    |> OpBuilder.add_operands [ destination ]
+    |> OpBuilder.add_operands indices
+    |> OpBuilder.build true
 end
