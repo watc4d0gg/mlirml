@@ -12,5 +12,6 @@ module Tensor = struct
     |> OpBuilder.add_operands [ value ]
     |> OpBuilder.add_operands [ destination ]
     |> OpBuilder.add_operands indices
+    |> OpBuilder.add_results [ destination#get_type ]
     |> OpBuilder.build true
 end
