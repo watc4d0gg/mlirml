@@ -12,6 +12,8 @@ include module type of Builtin_types
 
 include module type of Pass
 
+include module type of Execution_engine
+
 include module type of Arith (** @inline *)
 
 include module type of Func (** @inline *)
