@@ -5,6 +5,7 @@ include Affine_map.AffineMap
 include Builtin_attributes
 include Builtin_types
 include Pass
+include Rewrite
 include Execution_engine
 include Arith
 include Func
