@@ -57,9 +57,9 @@ module ExternalPass = struct
         setf value MlirExternalPassCallbacks.destruct destruct_funptr;
         setf value MlirExternalPassCallbacks.clone clone_funptr;
         setf value MlirExternalPassCallbacks.initialize init_funptr;
-        setf value MlirExternalPassCallbacks.run run_funptr))
+        setf value MlirExternalPassCallbacks.run run_funptr;
+        print_endline "created callbacks!";))
         MlirExternalPassCallbacks.t in
-    print_endline "created callbacks!";
     mlir_create_external_pass
       id#raw
       (match name with
