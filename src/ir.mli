@@ -50,6 +50,7 @@ module rec Ir : sig
     val arith : unit -> t
     val func : unit -> t
     val linalg : unit -> t
+    val llvm : unit -> t
     val memref : unit -> t
     val scf : unit -> t
     val sparse_tensor : unit -> t

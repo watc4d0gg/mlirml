@@ -21,6 +21,7 @@ module Ir = struct
     let arith = mlir_get_dialect_handle__arith_ >> from_raw
     let func = mlir_get_dialect_handle__func_ >> from_raw
     let linalg = mlir_get_dialect_handle__linalg_ >> from_raw
+    let llvm = mlir_get_dialect_handle__llvm_ >> from_raw
     let memref = mlir_get_dialect_handle__memref_ >> from_raw
     let scf = mlir_get_dialect_handle__scf_ >> from_raw
     let sparse_tensor = mlir_get_dialect_handle__sparse_tensor_ >> from_raw
