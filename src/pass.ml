@@ -43,7 +43,9 @@ module ExternalPass = struct
           coerce
             (Foreign.funptr (MlirContext.t @-> ptr void @-> returning MlirLogicalResult.t))
             (static_funptr (ptr MlirContext.t @-> ptr void @-> returning (ptr MlirLogicalResult.t)))
-            (fun ctx _ -> init (Context.from_raw ctx))
+            (fun ctx _ -> match init (Context.from_raw ctx) with
+            | LogicalResult.Success -> mlir_logical_result_success ()
+            | LogicalResult.Failure -> mlir_logical_result_failure ())
         in
         let run_funptr =
           coerce
