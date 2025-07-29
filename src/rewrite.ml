@@ -60,7 +60,7 @@ module Rewriter = struct
 
   let from_raw = new t
 
-  let get ctx = mlir_irrewriter_create ctx#raw
+  let get ctx = mlir_irrewriter_create ctx#raw |> from_raw
 
-  let get_from_op op = mlir_irrewriter_create_from_op op#raw
+  let get_from_op op = mlir_irrewriter_create_from_op op#raw |> from_raw
 end
