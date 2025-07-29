@@ -59,6 +59,7 @@ module ExternalPass = struct
         setf value MlirExternalPassCallbacks.initialize init_funptr;
         setf value MlirExternalPassCallbacks.run run_funptr))
         MlirExternalPassCallbacks.t in
+    print_endline "created callbacks!";
     mlir_create_external_pass
       id#raw
       (match name with
